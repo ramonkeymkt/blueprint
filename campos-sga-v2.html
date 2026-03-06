@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Campos SGA — Mapeamento por Entidade v2</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #0a0e1a;
+    --border: #1e2d45;
+    --accent: #00c2ff;
+    --accent2: #ff6b2b;
+    --accent3: #00e5a0;
+    --crm: #a78bfa;
+    --boleto: #fbbf24;
+    --produto: #f472b6;
+    --benef: #34d399;
+    --text: #e2e8f0;
+    --muted: #64748b;
+    --warn: #ff6b6b;
+  }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Syne', sans-serif;
+    min-height: 100vh;
+    padding: 40px 32px;
+    background-image:
+      radial-gradient(ellipse at 15% 0%, rgba(0,194,255,0.06) 0%, transparent 55%),
+      radial-gradient(ellipse at 85% 100%, rgba(0,229,160,0.05) 0%, transparent 55%);
+  }
+  .page { max-width: 1300px; margin: 0 auto; }
+
+  .header {
+    display: flex; justify-content: space-between; align-items: flex-start;
+    margin-bottom: 40px; padding-bottom: 24px; border-bottom: 1px solid var(--border);
+  }
+  .tag { font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--accent); letter-spacing: 2px; text-transform: uppercase; margin-bottom: 8px; }
+  h1 { font-size: 28px; font-weight: 800; letter-spacing: -0.5px; line-height: 1.2; }
+  h1 span { color: var(--accent); }
+  .header-right { text-align: right; }
+  .date { font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--muted); }
+  .status-badge {
+    display: inline-block; margin-top: 8px; padding: 4px 12px; border-radius: 20px;
+    background: rgba(0,194,255,0.1); border: 1px solid rgba(0,194,255,0.3);
+    font-size: 11px; color: var(--accent); font-family: 'IBM Plex Mono', monospace;
+  }
+
+  /* ESTRUTURA */
+  .estrutura {
+    background: rgba(0,194,255,0.03);
+    border: 1px solid rgba(0,194,255,0.12);
+    border-radius: 12px;
+    padding: 18px 24px;
+    margin-bottom: 32px;
+    font-family: 'IBM Plex Mono', monospace;
+  }
+  .estrutura-title { font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: var(--accent); margin-bottom: 12px; }
+  .estrutura-tree { font-size: 12px; color: var(--muted); line-height: 2; }
+  .estrutura-tree .e-assoc  { color: var(--accent); }
+  .estrutura-tree .e-veiculo { color: var(--accent3); }
+  .estrutura-tree .e-servico { color: var(--accent2); }
+  .estrutura-tree .e-benef   { color: var(--benef); }
+  .estrutura-tree .e-benefit { color: var(--produto); }
+  .estrutura-tree .e-boleto  { color: var(--boleto); }
+  .estrutura-tree .e-consul  { color: var(--crm); }
+  .estrutura-tree .e-pending { color: var(--warn); }
+  .estrutura-tree .e-banco   { color: #60a5fa; }
+
+  /* LEGEND */
+  .legend { display: flex; gap: 20px; margin-bottom: 32px; flex-wrap: wrap; }
+  .legend-item { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--muted); font-family: 'IBM Plex Mono', monospace; }
+  .legend-dot { width: 10px; height: 10px; border-radius: 2px; }
+
+  /* ENTITY BLOCK */
+  .entity-block {
+    border-radius: 14px;
+    border: 1px solid var(--border);
+    overflow: hidden;
+    margin-bottom: 20px;
+    animation: fadeUp 0.5s ease both;
+  }
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(12px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .eb-consultor  { background: #0d0d1e; border-color: rgba(167,139,250,0.25); animation-delay: 0.05s; }
+  .eb-associado  { background: #0a1520; border-color: rgba(0,194,255,0.22);   animation-delay: 0.10s; }
+  .eb-veiculo    { background: #0a1a14; border-color: rgba(0,229,160,0.22);   animation-delay: 0.15s; }
+  .eb-servico    { background: #1a100a; border-color: rgba(255,107,43,0.22);  animation-delay: 0.20s; }
+  .eb-beneficiario { background: #0a1a12; border-color: rgba(52,211,153,0.22); animation-delay: 0.25s; }
+  .eb-beneficio  { background: #1a0d15; border-color: rgba(244,114,182,0.22); animation-delay: 0.30s; }
+  .eb-boleto     { background: #1a160a; border-color: rgba(251,191,36,0.22);  animation-delay: 0.35s; }
+  .eb-plano      { background: #1a0a0a; border-color: rgba(255,107,107,0.22); animation-delay: 0.40s; }
+
+  .entity-header {
+    display: flex; align-items: center; gap: 14px;
+    padding: 16px 24px; border-bottom: 1px solid var(--border);
+  }
+  .entity-icon { font-size: 20px; }
+  .entity-name { font-size: 16px; font-weight: 800; }
+  .eb-consultor  .entity-name { color: var(--crm); }
+  .eb-associado  .entity-name { color: var(--accent); }
+  .eb-veiculo    .entity-name { color: var(--accent3); }
+  .eb-servico    .entity-name { color: var(--accent2); }
+  .eb-beneficiario .entity-name { color: var(--benef); }
+  .eb-beneficio  .entity-name { color: var(--produto); }
+  .eb-boleto     .entity-name { color: var(--boleto); }
+  .eb-plano      .entity-name { color: var(--warn); }
+
+  .entity-meta { margin-left: auto; display: flex; gap: 8px; align-items: center; }
+  .meta-pill {
+    font-family: 'IBM Plex Mono', monospace; font-size: 10px;
+    padding: 3px 9px; border-radius: 4px;
+    background: rgba(255,255,255,0.05); color: var(--muted);
+    border: 1px solid var(--border);
+  }
+  .meta-pill.pending { background: rgba(255,107,107,0.08); color: var(--warn); border-color: rgba(255,107,107,0.2); }
+
+  /* TABLE */
+  .fields-table { width: 100%; border-collapse: collapse; }
+  .fields-table th {
+    font-family: 'IBM Plex Mono', monospace; font-size: 9px;
+    letter-spacing: 2px; text-transform: uppercase; color: var(--muted);
+    padding: 10px 24px; text-align: left;
+    border-bottom: 1px solid var(--border);
+    background: rgba(0,0,0,0.2);
+  }
+  .fields-table td {
+    padding: 9px 24px; font-size: 11px;
+    font-family: 'IBM Plex Mono', monospace;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+    vertical-align: middle;
+  }
+  .fields-table tr:last-child td { border-bottom: none; }
+  .fields-table tr:hover td { background: rgba(255,255,255,0.02); }
+
+  .field-name { color: var(--text); font-weight: 500; }
+  .field-type { color: var(--muted); font-size: 10px; }
+  .field-example { color: var(--muted); font-size: 10px; opacity: 0.7; max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .field-note { color: var(--muted); font-size: 10px; }
+
+  .tag-pill {
+    font-size: 9px; padding: 2px 6px; border-radius: 3px;
+    font-family: 'IBM Plex Mono', monospace; display: inline-block; margin: 1px;
+  }
+  .tag-warn    { background: rgba(255,107,107,0.12); color: var(--warn); border: 1px solid rgba(255,107,107,0.2); }
+  .tag-pending { background: rgba(245,158,11,0.12); color: #fbbf24; border: 1px solid rgba(245,158,11,0.2); }
+  .tag-ok      { background: rgba(0,229,160,0.1); color: var(--accent3); border: 1px solid rgba(0,229,160,0.2); }
+  .tag-multi   { background: rgba(0,194,255,0.1); color: var(--accent); border: 1px solid rgba(0,194,255,0.2); }
+  .tag-typo    { background: rgba(255,107,43,0.12); color: var(--accent2); border: 1px solid rgba(255,107,43,0.2); }
+  .tag-arch    { background: rgba(167,139,250,0.12); color: var(--crm); border: 1px solid rgba(167,139,250,0.2); }
+
+  /* FOOTER */
+  .footer {
+    margin-top: 32px; padding-top: 18px; border-top: 1px solid var(--border);
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .footer-note { font-size: 11px; color: var(--muted); font-family: 'IBM Plex Mono', monospace; }
+  .next-step {
+    font-size: 12px; padding: 8px 16px; border-radius: 6px;
+    background: rgba(0,194,255,0.08); border: 1px solid rgba(0,194,255,0.2);
+    color: var(--accent); font-family: 'IBM Plex Mono', monospace;
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <div class="header">
+    <div>
+      <div class="tag">// Mapeamento SGA — v2.0</div>
+      <h1>Campos do SGA<br><span>Por Entidade</span></h1>
+    </div>
+    <div class="header-right">
+      <div class="date">Fev 2026</div>
+      <div class="status-badge">● 7 entidades</div>
+    </div>
+  </div>
+
+  <!-- ESTRUTURA -->
+  <div class="estrutura">
+    <div class="estrutura-title">// Estrutura de entidades</div>
+    <div class="estrutura-tree">
+      <span class="e-consul">Consultor</span><br>
+      &nbsp;&nbsp;└── <span class="e-assoc">Associado</span><br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;├── <span class="e-veiculo">Veículo</span><br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;└── <span class="e-servico">Serviço (produto adicional)</span><br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;├── <span class="e-benef">Beneficiário</span><br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;└── <span class="e-benefit">Benefício (vínculo ativo/inativo)</span><br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;└── <span class="e-boleto">Boleto</span> (por associado / mês)<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;└── <span class="e-banco">Bancos</span>
+    </div>
+  </div>
+
+  <div class="legend">
+    <div class="legend-item"><div class="legend-dot" style="background:var(--warn)"></div>⚠ Ponto de atenção</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#fbbf24"></div>⏳ Aguardando negócio</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--accent3)"></div>✓ Mapeado</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--accent)"></div>↕ Array / múltiplos</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--accent2)"></div>✎ Typo no campo original</div>
+  </div>
+
+  <!-- CONSULTOR -->
+  <div class="entity-block eb-consultor">
+    <div class="entity-header">
+      <span class="entity-icon">👤</span>
+      <span class="entity-name">Consultor</span>
+      <div class="entity-meta">
+        <span class="meta-pill">Power CRM + SGA</span>
+        <span class="meta-pill">⚠ duplicado nos 2 sistemas</span>
+      </div>
+    </div>
+    <table class="fields-table">
+      <thead><tr><th style="width:22%">Campo SGA</th><th style="width:12%">Tipo</th><th style="width:28%">Exemplo</th><th>Observação</th></tr></thead>
+      <tbody>
+        <tr><td class="field-name">codigo_voluntario</td><td class="field-type">string</td><td class="field-example">"11"</td><td class="field-note"><span class="tag-pill tag-ok">ID no SGA</span> nome do campo é "voluntario"</td></tr>
+        <tr><td class="field-name">nome</td><td class="field-type">string</td><td class="field-example">"JOSE GILMAR PINHEIRO"</td><td class="field-note">—</td></tr>
+        <tr><td class="field-name">cpf</td><td class="field-type">string</td><td class="field-example">"72360240668"</td><td class="field-note"><span class="tag-pill tag-warn">Critério de merge com Power CRM</span></td></tr>
+        <tr><td class="field-name">telefone</td><td class="field-type">string</td><td class="field-example">"(31)9495-1363"</td><td class="field-note">—</td></tr>
+        <tr><td class="field-name">celular</td><td class="field-type">string</td><td class="field-example">"(31)9949-51363"</td><td class="field-note">—</td></tr>
+        <tr><td class="field-name">email</td><td class="field-type">string</td><td class="field-example">""</td><td class="field-note"><span class="tag-pill tag-warn">Pode estar vazio — critério alternativo de merge</span></td></tr>
+        <tr><td class="field-name">logradouro</td><td class="field-type">string</td><td class="field-example">""</td><td class="field-note">Pode estar vazio</td></tr>
+        <tr><td class="field-name">numero</td><td class="field-type">string</td><td class="field-example">""</td><td class="field-note">—</td></tr>
+        <tr><td class="field-name">complemento</td><td class="field-type">string</td><td class="field-example">""</td><td class="field-note">—</td></tr>
+        <tr><td class="field-name">bairro</td><td class="field-type">string</td><td class="field-example">""</td><td class="field-note">—</td></tr>
+        <tr><td class="field-name">cidade</td><td class="field-type">string</td><td class="field-example">""</td><td class="field-note">—</td></tr>
+        <tr><td class="field-name">estado</td><td class="field-type">string</td><td class="field-example">""</td><td class="field-note">—</td></tr>
+        <tr><td class="field-name">obs</td><td class="field-type">string</td><td class="field-example">""</td><td class="field-note">—</td></tr>
+        <tr><td class="field-name">data_cadastro</td><td class="field-type">datetime</td><td class="field-example">"2021-10-07T00:00:00-0300"</td><td class="field-note">—</td></tr>
+        <tr><td class="field-name">situacao</td><td class="field-type">string</td><td class="field-example">"ATIVO"</td><td class="field-note">—</td></tr>
+        <tr><td class="field-name">formato_pagamento</td><td class="field-type">string</td><td class="field-example">"%"</td><td class="field-note">Comissão do consultor</td></tr>
+        <tr><td class="field-name">valor_pagamento</td><td class="field-type">decimal</td><td class="field-example">0</td><td class="field-note">—</td></tr>
+        <tr><td class="field-name">formato_pagamento_residual</td><td class="field-type">string</td><td class="field-example">"%"</td><td class="field-note">—</td></tr>
+        <tr><td class="field-name">valor_pagamento_residual</td><td class="field-type">decimal</td><td class="field-example">0</td><td class="field-note">—</td></tr>
+        <tr><td class="field-name">cooperativas</td><td class="field-type">array</td><td class="field-example">[{codigo, nome, email}]</td><td class="field-note"><span class="tag-pill tag-multi">Array</span> <span class="tag-pill tag-pending">Validar aplicação com negócio</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ASSOCIADO -->
+  <div class="entity-block eb-associado">
+    <div class="entity-header">
+      <span class="entity-icon">👥</span>
+      <span class="entity-name">Associado</span>
+      <div class="entity-meta">
+        <span class="meta-pill">SGA</span>
+        <span class="meta-pill">50k+ registros ativos</span>
+      </div>
+    </div>
+    <table class="fields-table">
+      <thead><tr><th style="width:22%">Campo SGA</th><th style="width:12%">Tipo</th><th style="width:28%">Exemplo</th><th>Observação</th></tr></thead>
+      <tbody>
+        <tr><td class="field-name">codigo_associado</td><td class="field-type">int</td><td class="field-example">17345</td><td class="field-note"><span class="tag-pill tag-ok">ID no SGA</span></td></tr>
+        <tr><td class="field-name">nome</td><td class="field-type">string</td><td class="field-example">"RAMON FIGUEIREDO..."</td><td class="field-note">—</td></tr>
+        <tr><td class="field-name">cpf</td><td class="field-type">string</td><td class="field-example">"09743888667"</td><td class="field-note"><span class="tag-pill tag-warn">Auditar duplicatas antes de migrar</span></td></tr>
+        <tr><td class="field-name">sexo</td><td class="field-type">string</td><td class="field-example">"M"</td><td class="field-note">—</td></tr>
+        <tr><td class="field-name">data_nascimento</td><td class="field-type">datetime</td><td class="field-example">"1990-09-04T00:00:00-0300"</td><td class="field-note">—</td></tr>
+        <tr><td class="field-name">nome_mae</td><td class="field-type">string</td><td class="field-example">""</td><td class="field-note">Pode estar vazio</td></tr>
+        <tr><td class="field-name">nome_pai</td><td class="field-type">string</td><td class="field-example">""</td><td class="field-note">Pode estar vazio</td></tr>
+        <tr><td class="field-name">rg</td><td class="field-type">string</td><td class="field-example">"MG15596836"</td><td class="field-note">—</td></tr>
+        <tr><td class="field-name">orgao_expedidor_rg</td><td class="field-type">string</td><td class="field-example">""</td><td class="field-note">—</td></tr>
+        <tr><td class="field-name">data_expedicao_rg</td><td class="field-type">date</td><td class="field-example">null</td><td class="field-note">Nullable</td></tr>
+        <tr><td class="field-name">cnh</td><td class="field-type">string</td><td class="field-example">"05036532225"</td><td class="field-note">—</td></tr>
+        <tr><td class="field-name">categoria_cnh</td><td class="field-type">string</td><td class="field-example">"AB"</td><td class="field-note">—</td></tr>
+        <tr><td class="field-name">data_vencimento_habilitacao</td><td class="field-type">date</td><td class="field-example">null</td><td class="field-note">Nullable</td></tr>
+        <tr><td class="field-name">telefone_celular</td><td class="field-type">string</td><td class="field-example">"(31)99164-0603"</td><td class="field-note">—</td></tr>
+        <tr><td class="field-name">telefone_celular_aux</td><td class="field-type">string</td><td class="field-example">"()"</td><td class="field-note">Pode estar vazio</td></tr>
+        <tr><td class="field-name">telefone_comercial</td><td class="field-type">string</td><td class="field-example">"()-"</td><td class="field-note">Pode estar vazio</td></tr>
+        <tr><td class="field-name">telefone_fixo</td><td class="field-type">string</td><td class="field-example">"()"</td><td class="field-note">Pode estar vazio</td></tr>
+        <tr><td class="field-name">email</td><td class="field-type">string</td><td class="field-example">"ramon.fos@gmail.com"</td><td class="field-note">—</td></tr>
+        <tr><td class="field-name">email_auxiliar</td><td class="field-type">string</td><td class="field-example">""</td><td class="field-note">—</td></tr>
+        <tr><td class="field-name">cep</td><td class="field-type">string</td><td class="field-example">"30644-204"</td><td class="field-note">—</td></tr>
+        <tr><td class="field-name">logradouro</td><td class="field-type">string</td><td class="field-example">"RUA ADELINA MARIA..."</td><td class="field-note">—</td></tr>
+        <tr><td class="field-name">numero</td><td class="field-type">string</td><td class="field-example">"86"</td><td class="field-note">—</td></tr>
+        <tr><td class="field-name">complemento</td><td class="field-type">string</td><td class="field-example">"BL 5 AP 203"</td><td class="field-note">—</td></tr>
+        <tr><td class="field-name">bairro</td><td class="field-type">string</td><td class="field-example">"DIAMANTE (BARREIRO)"</td><td class="field-note">—</td></tr>
+        <tr><td class="field-name">cidade</td><td class="field-type">string</td><td class="field-example">"BELO HORIZONTE"</td><td class="field-note">—</td></tr>
+        <tr><td class="field-name">estado</td><td class="field-type">string</td><td class="field-example">"MG"</td><td class="field-note">—</td></tr>
+        <tr><td class="field-name">data_cadastro</td><td class="field-type">datetime</td><td class="field-example">"2022-04-27T00:00:00-0300"</td><td class="field-note">—</td></tr>
+        <tr><td class="field-name">data_contrato</td><td class="field-type">datetime</td><td class="field-example">"2022-04-27T00:00:00-0300"</td><td class="field-note">—</td></tr>
+        <tr><td class="field-name">codigo_situacao</td><td class="field-type">int</td><td class="field-example">1</td><td class="field-note">Código numérico</td></tr>
+        <tr><td class="field-name">descricao_situacao</td><td class="field-type">string</td><td class="field-example">"ATIVO"</td><td class="field-note">—</td></tr>
+        <tr><td class="field-name">codigo_estado_civil</td><td class="field-type">string</td><td class="field-example">"6"</td><td class="field-note">Código — verificar tabela</td></tr>
+        <tr><td class="field-name">codigo_classificacao</td><td class="field-type">string</td><td class="field-example">"1"</td><td class="field-note">—</td></tr>
+        <tr><td class="field-name">codigo_profissao</td><td class="field-type">string</td><td class="field-example">"1"</td><td class="field-note">Código — verificar tabela</td></tr>
+        <tr><td class="field-name">filhos</td><td class="field-type">int</td><td class="field-example">0</td><td class="field-note">—</td></tr>
+        <tr><td class="field-name">spcSerasa</td><td class="field-type">string</td><td class="field-example">"NÃO"</td><td class="field-note">—</td></tr>
+        <tr><td class="field-name">dia_vencimento</td><td class="field-type">string</td><td class="field-example">"10"</td><td class="field-note">Base para geração de boletos</td></tr>
+        <tr><td class="field-name">codigo_tipo_cobranca_recorrente</td><td class="field-type">string</td><td class="field-example">"3"</td><td class="field-note">—</td></tr>
+        <tr><td class="field-name">descricao_tipo_cobranca_recorrente</td><td class="field-type">string</td><td class="field-example">"CARTÃO DE CRÉDITO"</td><td class="field-note"><span class="tag-pill tag-warn">Nem sempre é boleto</span></td></tr>
+        <tr><td class="field-name">codigo_cooperativa</td><td class="field-type">string</td><td class="field-example">"1"</td><td class="field-note"><span class="tag-pill tag-pending">Validar aplicação com negócio</span></td></tr>
+        <tr><td class="field-name">codigo_regional</td><td class="field-type">int</td><td class="field-example">2</td><td class="field-note"><span class="tag-pill tag-pending">Validar aplicação com negócio</span></td></tr>
+        <tr><td class="field-name">codigo_associado_beneficiario</td><td class="field-type">string</td><td class="field-example">"103287"</td><td class="field-note">FK → Beneficiário principal</td></tr>
+        <tr><td class="field-name">codigo_externo</td><td class="field-type">string</td><td class="field-example">null</td><td class="field-note">Nullable</td></tr>
+        <tr><td class="field-name">codigo_voluntario</td><td class="field-type">string</td><td class="field-example">null</td><td class="field-note">FK → Consultor · modelo próprio: <span class="tag-pill tag-arch">associados.consultor_id</span> + <span class="tag-pill tag-multi">consultor_associado_log</span> <span class="tag-pill tag-pending">meio-termo — ver arquitetura.md §1</span></td></tr>
+        <tr><td class="field-name">pontos</td><td class="field-type">int</td><td class="field-example">0</td><td class="field-note">—</td></tr>
+        <tr><td class="field-name">opcoes_notificacao</td><td class="field-type">object</td><td class="field-example">{email,sms,whatsapp}</td><td class="field-note"><span class="tag-pill tag-multi">Sub-objeto</span> preferências de contato</td></tr>
+        <tr><td class="field-name">veiculos</td><td class="field-type">array</td><td class="field-example">[{codigo, placa, ...}]</td><td class="field-note"><span class="tag-pill tag-multi">Array embutido</span> ver entidade Veículo</td></tr>
+        <tr><td class="field-name">campos_opcionais</td><td class="field-type">array</td><td class="field-example">["sem campo opcional..."]</td><td class="field-note">Campo genérico — pode variar</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- VEÍCULO -->
+  <div class="entity-block eb-veiculo">
+    <div class="entity-header">
+      <span class="entity-icon">🚗</span>
+      <span class="entity-name">Veículo</span>
+      <div class="entity-meta">
+        <span class="meta-pill">SGA</span>
+        <span class="meta-pill">endpoint dedicado + embutido no Associado</span>
+      </div>
+    </div>
+    <table class="fields-table">
+      <thead><tr><th style="width:22%">Campo SGA</th><th style="width:12%">Tipo</th><th style="width:28%">Exemplo</th><th>Observação</th></tr></thead>
+      <tbody>
+        <tr><td colspan="4" style="padding:5px 24px 4px;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);background:rgba(0,0,0,0.18)">//&nbsp;Identificação</td></tr>
+        <tr><td class="field-name">codigo_veiculo</td><td class="field-type">string</td><td class="field-example">"58897"</td><td class="field-note"><span class="tag-pill tag-ok">ID no SGA</span></td></tr>
+        <tr><td class="field-name">placa</td><td class="field-type">string</td><td class="field-example">"HMR7H75"</td><td class="field-note">—</td></tr>
+        <tr><td class="field-name">chassi</td><td class="field-type">string</td><td class="field-example">"8AGCN48X0AR167355"</td><td class="field-note">—</td></tr>
+        <tr><td class="field-name">renavam</td><td class="field-type">string</td><td class="field-example">"00196769833"</td><td class="field-note">—</td></tr>
+        <tr><td class="field-name">numero_motor</td><td class="field-type">string</td><td class="field-example">"U55026343"</td><td class="field-note">—</td></tr>
+
+        <tr><td colspan="4" style="padding:5px 24px 4px;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);background:rgba(0,0,0,0.18)">//&nbsp;Tipo / Modelo</td></tr>
+        <tr><td class="field-name">codigo_tipo_veiculo</td><td class="field-type">string</td><td class="field-example">"1"</td><td class="field-note">Código do tipo</td></tr>
+        <tr><td class="field-name">tipo</td><td class="field-type">string</td><td class="field-example">"VEICULOS LEVES"</td><td class="field-note">—</td></tr>
+        <tr><td class="field-name">codigo_marca</td><td class="field-type">string</td><td class="field-example">"72"</td><td class="field-note">—</td></tr>
+        <tr><td class="field-name">marca</td><td class="field-type">string</td><td class="field-example">"GM - CHEVROLET"</td><td class="field-note">—</td></tr>
+        <tr><td class="field-name">codigo_modelo</td><td class="field-type">string</td><td class="field-example">"4266"</td><td class="field-note">—</td></tr>
+        <tr><td class="field-name">modelo</td><td class="field-type">string</td><td class="field-example">"AGILE LTZ 1.4 MPFI..."</td><td class="field-note">Descrição completa do modelo</td></tr>
+        <tr><td class="field-name">ano_fabricacao</td><td class="field-type">int</td><td class="field-example">2010</td><td class="field-note">—</td></tr>
+        <tr><td class="field-name">ano_modelo</td><td class="field-type">int</td><td class="field-example">2010</td><td class="field-note">—</td></tr>
+        <tr><td class="field-name">codigo_combustivel</td><td class="field-type">string</td><td class="field-example">"1"</td><td class="field-note">Código — verificar tabela</td></tr>
+        <tr><td class="field-name">codigo_cor</td><td class="field-type">string</td><td class="field-example">"7"</td><td class="field-note">Código — verificar tabela</td></tr>
+        <tr><td class="field-name">cambio</td><td class="field-type">string</td><td class="field-example">"M"</td><td class="field-note">"M" = manual / "A" = automático</td></tr>
+        <tr><td class="field-name">cilindrada</td><td class="field-type">int</td><td class="field-example">1400</td><td class="field-note">—</td></tr>
+        <tr><td class="field-name">quantidade_portas</td><td class="field-type">int</td><td class="field-example">0</td><td class="field-note">0 quando não informado</td></tr>
+        <tr><td class="field-name">quantidade_passageiros</td><td class="field-type">int</td><td class="field-example">5</td><td class="field-note">—</td></tr>
+        <tr><td class="field-name">km</td><td class="field-type">int</td><td class="field-example">0</td><td class="field-note">0 quando não informado</td></tr>
+        <tr><td class="field-name">codigo_classificacao</td><td class="field-type">string</td><td class="field-example">"1"</td><td class="field-note">—</td></tr>
+
+        <tr><td colspan="4" style="padding:5px 24px 4px;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);background:rgba(0,0,0,0.18)">//&nbsp;FIPE / Valor</td></tr>
+        <tr><td class="field-name">codigo_fipe</td><td class="field-type">string</td><td class="field-example">"004363-0"</td><td class="field-note">—</td></tr>
+        <tr><td class="field-name">valor_fipe</td><td class="field-type">decimal</td><td class="field-example">32583</td><td class="field-note">—</td></tr>
+        <tr><td class="field-name">valor_fipe_protegido</td><td class="field-type">string</td><td class="field-example">"32583.00"</td><td class="field-note">String → converter para decimal</td></tr>
+        <tr><td class="field-name">porcentagem_fipe_protegido</td><td class="field-type">decimal</td><td class="field-example">0</td><td class="field-note">—</td></tr>
+        <tr><td class="field-name">codigo_depreciacao</td><td class="field-type">string</td><td class="field-example">"1"</td><td class="field-note">Código da tabela de depreciação</td></tr>
+        <tr><td class="field-name">codigo_tabela_avaliacao</td><td class="field-type">string</td><td class="field-example">null</td><td class="field-note">Nullable</td></tr>
+
+        <tr><td colspan="4" style="padding:5px 24px 4px;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);background:rgba(0,0,0,0.18)">//&nbsp;Cota / Plano</td></tr>
+        <tr><td class="field-name">codigo_cota</td><td class="field-type">string</td><td class="field-example">"2884"</td><td class="field-note">FK → Plano/Cota</td></tr>
+        <tr><td class="field-name">cota</td><td class="field-type">string</td><td class="field-example">"NEW VEÍCULOS LEVES - R$..."</td><td class="field-note">Descrição da faixa de cobertura</td></tr>
+        <tr><td class="field-name">codigo_categoria</td><td class="field-type">string</td><td class="field-example">"1"</td><td class="field-note">—</td></tr>
+        <tr><td class="field-name">categoria</td><td class="field-type">string</td><td class="field-example">"NORMAL"</td><td class="field-note">—</td></tr>
+        <tr><td class="field-name">codigo_grupo_produto</td><td class="field-type">string</td><td class="field-example">"4"</td><td class="field-note">—</td></tr>
+        <tr><td class="field-name">valor_fixo</td><td class="field-type">decimal</td><td class="field-example">132.04</td><td class="field-note">Valor mensal do veículo no plano</td></tr>
+
+        <tr><td colspan="4" style="padding:5px 24px 4px;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);background:rgba(0,0,0,0.18)">//&nbsp;Situação / Registro</td></tr>
+        <tr><td class="field-name">codigo_situacao</td><td class="field-type">string</td><td class="field-example">"1"</td><td class="field-note">Código numérico</td></tr>
+        <tr><td class="field-name">descricao_situacao</td><td class="field-type">string</td><td class="field-example">"ATIVO"</td><td class="field-note">—</td></tr>
+        <tr><td class="field-name">data_cadastro</td><td class="field-type">datetime</td><td class="field-example">"2024-03-25T00:00:00-0300"</td><td class="field-note">—</td></tr>
+        <tr><td class="field-name">hora_cadastro</td><td class="field-type">time</td><td class="field-example">"13:55:12"</td><td class="field-note">Separado do data_cadastro</td></tr>
+        <tr><td class="field-name">data_contrato</td><td class="field-type">datetime</td><td class="field-example">"2024-03-25T00:00:00-0300"</td><td class="field-note">—</td></tr>
+        <tr><td class="field-name">data_reativacao</td><td class="field-type">date</td><td class="field-example">null</td><td class="field-note">Nullable</td></tr>
+        <tr><td class="field-name">usuario_cadastro</td><td class="field-type">string</td><td class="field-example">"CRM TOP BRASIL PV"</td><td class="field-note">Auditoria de criação</td></tr>
+
+        <tr><td colspan="4" style="padding:5px 24px 4px;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);background:rgba(0,0,0,0.18)">//&nbsp;Cobrança</td></tr>
+        <tr><td class="field-name">pontos</td><td class="field-type">int</td><td class="field-example">0</td><td class="field-note">—</td></tr>
+        <tr><td class="field-name">valor_adesao</td><td class="field-type">decimal</td><td class="field-example">0</td><td class="field-note">—</td></tr>
+        <tr><td class="field-name">mes_final_carne</td><td class="field-type">int</td><td class="field-example">0</td><td class="field-note">—</td></tr>
+        <tr><td class="field-name">mes_referente</td><td class="field-type">string</td><td class="field-example">"01/2026"</td><td class="field-note">Mês de competência — converter para YYYY-MM</td></tr>
+        <tr><td class="field-name">participacao</td><td class="field-type">decimal</td><td class="field-example">0</td><td class="field-note">—</td></tr>
+        <tr><td class="field-name">dia_vencimento</td><td class="field-type">string</td><td class="field-example">"10"</td><td class="field-note">Base para geração de boleto</td></tr>
+        <tr><td class="field-name">codigo_vencimeto</td><td class="field-type">string</td><td class="field-example">"1"</td><td class="field-note"><span class="tag-pill tag-typo">Typo: "vencimeto"</span></td></tr>
+        <tr><td class="field-name">boleto_fisico</td><td class="field-type">string</td><td class="field-example">"N"</td><td class="field-note">"S" ou "N"</td></tr>
+        <tr><td class="field-name">codigo_tipo_envio_boleto</td><td class="field-type">string</td><td class="field-example">"1"</td><td class="field-note">—</td></tr>
+        <tr><td class="field-name">descricao_tipo_envio_boleto</td><td class="field-type">string</td><td class="field-example">"POSTAGEM NOS CORREIOS"</td><td class="field-note">—</td></tr>
+        <tr><td class="field-name">forma_pagamento_protecao</td><td class="field-type">int</td><td class="field-example">1</td><td class="field-note">Código — verificar tabela</td></tr>
+
+        <tr><td colspan="4" style="padding:5px 24px 4px;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);background:rgba(0,0,0,0.18)">//&nbsp;Organização</td></tr>
+        <tr><td class="field-name">codigo_regional</td><td class="field-type">string</td><td class="field-example">"2"</td><td class="field-note"><span class="tag-pill tag-pending">Validar com negócio</span></td></tr>
+        <tr><td class="field-name">codigo_cooperativa</td><td class="field-type">string</td><td class="field-example">"1"</td><td class="field-note"><span class="tag-pill tag-pending">Validar com negócio</span></td></tr>
+        <tr><td class="field-name">codigo_externo</td><td class="field-type">string</td><td class="field-example">null</td><td class="field-note">Nullable</td></tr>
+
+        <tr><td colspan="4" style="padding:5px 24px 4px;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);background:rgba(0,0,0,0.18)">//&nbsp;Associado (desnormalizado)</td></tr>
+        <tr><td class="field-name">codigo_associado</td><td class="field-type">string</td><td class="field-example">"17345"</td><td class="field-note">FK → Associado</td></tr>
+        <tr><td class="field-name">nome</td><td class="field-type">string</td><td class="field-example">"RAMON FIGUEIREDO..."</td><td class="field-note">Desnormalizado</td></tr>
+        <tr><td class="field-name">cpf</td><td class="field-type">string</td><td class="field-example">"09743888667"</td><td class="field-note">Desnormalizado</td></tr>
+        <tr><td class="field-name">rg</td><td class="field-type">string</td><td class="field-example">"MG15596836"</td><td class="field-note">Desnormalizado</td></tr>
+        <tr><td class="field-name">email</td><td class="field-type">string</td><td class="field-example">"ramon.fos@gmail.com"</td><td class="field-note">Desnormalizado</td></tr>
+        <tr><td class="field-name">logradouro</td><td class="field-type">string</td><td class="field-example">"RUA JOSÉ TAVARES FILHO"</td><td class="field-note">Desnormalizado</td></tr>
+        <tr><td class="field-name">numero</td><td class="field-type">string</td><td class="field-example">"544"</td><td class="field-note">Desnormalizado</td></tr>
+        <tr><td class="field-name">complemento</td><td class="field-type">string</td><td class="field-example">"CASA"</td><td class="field-note">Desnormalizado</td></tr>
+        <tr><td class="field-name">bairro</td><td class="field-type">string</td><td class="field-example">"MARILÂNDIA"</td><td class="field-note">Desnormalizado</td></tr>
+        <tr><td class="field-name">cidade</td><td class="field-type">string</td><td class="field-example">"IBIRITÉ"</td><td class="field-note">Desnormalizado</td></tr>
+        <tr><td class="field-name">estado</td><td class="field-type">string</td><td class="field-example">"MG"</td><td class="field-note">Desnormalizado</td></tr>
+        <tr><td class="field-name">cep</td><td class="field-type">string</td><td class="field-example">"32404-806"</td><td class="field-note">Desnormalizado</td></tr>
+        <tr><td class="field-name">ddd / telefone</td><td class="field-type">string</td><td class="field-example">"" / ""</td><td class="field-note">DDD separado do número</td></tr>
+        <tr><td class="field-name">ddd_celular / telefone_celular</td><td class="field-type">string</td><td class="field-example">"31" / "99164-0603"</td><td class="field-note">DDD separado do número</td></tr>
+        <tr><td class="field-name">ddd_celular_aux / telefone_celular_aux</td><td class="field-type">string</td><td class="field-example">"" / ""</td><td class="field-note">DDD separado do número</td></tr>
+        <tr><td class="field-name">ddd_comercial / telefone_comercial</td><td class="field-type">string</td><td class="field-example">"" / "-"</td><td class="field-note">DDD separado do número</td></tr>
+
+        <tr><td colspan="4" style="padding:5px 24px 4px;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);background:rgba(0,0,0,0.18)">//&nbsp;Consultor (desnormalizado)</td></tr>
+        <tr><td class="field-name">codigo_voluntario</td><td class="field-type">string</td><td class="field-example">"11"</td><td class="field-note">Desnormalizado — FK → Consultor</td></tr>
+        <tr><td class="field-name">nome_voluntario</td><td class="field-type">string</td><td class="field-example">"JOSE GILMAR PINHEIRO"</td><td class="field-note">Desnormalizado</td></tr>
+        <tr><td class="field-name">cpf_voluntario</td><td class="field-type">string</td><td class="field-example">"72360240668"</td><td class="field-note">Desnormalizado</td></tr>
+
+        <tr><td colspan="4" style="padding:5px 24px 4px;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);background:rgba(0,0,0,0.18)">//&nbsp;Indicação</td></tr>
+        <tr><td class="field-name">codigo_veiculo_vinculado</td><td class="field-type">string</td><td class="field-example">null</td><td class="field-note">Nullable</td></tr>
+        <tr><td class="field-name">codigo_veiculo_indicador</td><td class="field-type">string</td><td class="field-example">null</td><td class="field-note">Nullable — veículo que indicou</td></tr>
+        <tr><td class="field-name">placa_veiculo_indicador</td><td class="field-type">string</td><td class="field-example">null</td><td class="field-note">Nullable</td></tr>
+        <tr><td class="field-name">codigo_associado_indicador</td><td class="field-type">string</td><td class="field-example">null</td><td class="field-note">Nullable — associado que indicou</td></tr>
+        <tr><td class="field-name">cpf_associado_indicador</td><td class="field-type">string</td><td class="field-example">null</td><td class="field-note">Nullable</td></tr>
+        <tr><td class="field-name">nome_associado_indicador</td><td class="field-type">string</td><td class="field-example">null</td><td class="field-note">Nullable</td></tr>
+
+        <tr><td colspan="4" style="padding:5px 24px 4px;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);background:rgba(0,0,0,0.18)">//&nbsp;Outros</td></tr>
+        <tr><td class="field-name">campos_opcionais</td><td class="field-type">array</td><td class="field-example">["sem campo opcional..."]</td><td class="field-note">Campo genérico — pode variar</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- SERVIÇO -->
+  <div class="entity-block eb-servico">
+    <div class="entity-header">
+      <span class="entity-icon">⚙️</span>
+      <span class="entity-name">Serviço (Produto Adicional)</span>
+      <div class="entity-meta">
+        <span class="meta-pill">SGA</span>
+        <span class="meta-pill">vinculado ao Plano</span>
+      </div>
+    </div>
+    <table class="fields-table">
+      <thead><tr><th style="width:22%">Campo SGA</th><th style="width:12%">Tipo</th><th style="width:28%">Exemplo</th><th>Observação</th></tr></thead>
+      <tbody>
+        <tr><td class="field-name">codigo_produto</td><td class="field-type">string</td><td class="field-example">"2297"</td><td class="field-note"><span class="tag-pill tag-ok">ID no SGA</span></td></tr>
+        <tr><td class="field-name">codigo_fornecedor</td><td class="field-type">string</td><td class="field-example">"8443"</td><td class="field-note">FK → Fornecedor</td></tr>
+        <tr><td class="field-name">decricao_produto</td><td class="field-type">string</td><td class="field-example">"(DANOS MATERIAIS...)"</td><td class="field-note"><span class="tag-pill tag-typo">Typo: "decricao"</span></td></tr>
+        <tr><td class="field-name">descricao_produto_boleto</td><td class="field-type">string</td><td class="field-example">"(DANOS MATERIAIS...)"</td><td class="field-note">Texto exibido no boleto</td></tr>
+        <tr><td class="field-name">codigo_classificacaoproduto</td><td class="field-type">string</td><td class="field-example">"4"</td><td class="field-note">Categoria do produto</td></tr>
+        <tr><td class="field-name">tipo_veiculo</td><td class="field-type">string</td><td class="field-example">"2"</td><td class="field-note">Restrição por tipo de veículo</td></tr>
+        <tr><td class="field-name">descricao_tipo_veiculo</td><td class="field-type">string</td><td class="field-example">"PICAPE"</td><td class="field-note">—</td></tr>
+        <tr><td class="field-name">valor_produto</td><td class="field-type">decimal</td><td class="field-example">"10.0000"</td><td class="field-note">Valor adicional</td></tr>
+        <tr><td class="field-name">valor_fipe_inicial</td><td class="field-type">decimal</td><td class="field-example">0</td><td class="field-note">0 = sem restrição de faixa FIPE</td></tr>
+        <tr><td class="field-name">valor_fipe_final</td><td class="field-type">decimal</td><td class="field-example">0</td><td class="field-note">0 = sem restrição de faixa FIPE</td></tr>
+        <tr><td class="field-name">padrao</td><td class="field-type">string</td><td class="field-example">"N"</td><td class="field-note">"Y" = produto padrão do plano</td></tr>
+        <tr><td class="field-name">formato_cobranca</td><td class="field-type">string</td><td class="field-example">"R$"</td><td class="field-note">Fixo em R$</td></tr>
+        <tr><td class="field-name">situacao</td><td class="field-type">string</td><td class="field-example">"ATIVO"</td><td class="field-note">—</td></tr>
+        <tr><td class="field-name">cooperativas</td><td class="field-type">array</td><td class="field-example">[{codigo, nome}]</td><td class="field-note"><span class="tag-pill tag-multi">Array</span> <span class="tag-pill tag-pending">Validar com negócio</span></td></tr>
+        <tr><td class="field-name">regionais</td><td class="field-type">array</td><td class="field-example">[{codigo, nome}]</td><td class="field-note"><span class="tag-pill tag-multi">Array</span> <span class="tag-pill tag-pending">Validar com negócio</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- BENEFICIÁRIO -->
+  <div class="entity-block eb-beneficiario">
+    <div class="entity-header">
+      <span class="entity-icon">🧑‍🤝‍🧑</span>
+      <span class="entity-name">Beneficiário</span>
+      <div class="entity-meta">
+        <span class="meta-pill">SGA</span>
+        <span class="meta-pill">pode ser o próprio associado</span>
+      </div>
+    </div>
+    <table class="fields-table">
+      <thead><tr><th style="width:22%">Campo SGA</th><th style="width:12%">Tipo</th><th style="width:28%">Exemplo</th><th>Observação</th></tr></thead>
+      <tbody>
+        <tr><td class="field-name">codigo_beneficiario</td><td class="field-type">string</td><td class="field-example">"103287"</td><td class="field-note"><span class="tag-pill tag-ok">ID no SGA</span></td></tr>
+        <tr><td class="field-name">codigo_associado</td><td class="field-type">string</td><td class="field-example">"17345"</td><td class="field-note">FK → Associado</td></tr>
+        <tr><td class="field-name">nome</td><td class="field-type">string</td><td class="field-example">"RAMON FIGUEIREDO..."</td><td class="field-note">—</td></tr>
+        <tr><td class="field-name">cpf</td><td class="field-type">string</td><td class="field-example">"09743888667"</td><td class="field-note"><span class="tag-pill tag-warn">Pode ser igual ao CPF do associado</span></td></tr>
+        <tr><td class="field-name">sexo</td><td class="field-type">string</td><td class="field-example">"M"</td><td class="field-note">—</td></tr>
+        <tr><td class="field-name">data_nascimento_beneficiario</td><td class="field-type">date</td><td class="field-example">"1990-09-04"</td><td class="field-note">—</td></tr>
+        <tr><td class="field-name">rg_beneficiario</td><td class="field-type">string</td><td class="field-example">"MG15596836"</td><td class="field-note">—</td></tr>
+        <tr><td class="field-name">data_expedicao_rg_beneficiario</td><td class="field-type">date</td><td class="field-example">null</td><td class="field-note">Nullable</td></tr>
+        <tr><td class="field-name">orgao_expedidor_rg</td><td class="field-type">string</td><td class="field-example">""</td><td class="field-note">—</td></tr>
+        <tr><td class="field-name">cnh</td><td class="field-type">string</td><td class="field-example">"05036532225"</td><td class="field-note">—</td></tr>
+        <tr><td class="field-name">categoria_cnh</td><td class="field-type">string</td><td class="field-example">"AB"</td><td class="field-note">—</td></tr>
+        <tr><td class="field-name">nome_mae</td><td class="field-type">string</td><td class="field-example">""</td><td class="field-note">—</td></tr>
+        <tr><td class="field-name">nome_pai</td><td class="field-type">string</td><td class="field-example">""</td><td class="field-note">—</td></tr>
+        <tr><td class="field-name">logradouro</td><td class="field-type">string</td><td class="field-example">"RUA ADELINA..."</td><td class="field-note">—</td></tr>
+        <tr><td class="field-name">numero</td><td class="field-type">string</td><td class="field-example">"86"</td><td class="field-note">—</td></tr>
+        <tr><td class="field-name">complemento</td><td class="field-type">string</td><td class="field-example">"BL 5 AP 203"</td><td class="field-note">—</td></tr>
+        <tr><td class="field-name">bairro</td><td class="field-type">string</td><td class="field-example">"DIAMANTE (BARREIRO)"</td><td class="field-note">—</td></tr>
+        <tr><td class="field-name">cidade</td><td class="field-type">string</td><td class="field-example">"BELO HORIZONTE"</td><td class="field-note">—</td></tr>
+        <tr><td class="field-name">estado</td><td class="field-type">string</td><td class="field-example">"MG"</td><td class="field-note">—</td></tr>
+        <tr><td class="field-name">cep</td><td class="field-type">string</td><td class="field-example">"30644-204"</td><td class="field-note">—</td></tr>
+        <tr><td class="field-name">ddd / telefone</td><td class="field-type">string/int</td><td class="field-example">ddd=0, tel=""</td><td class="field-note">DDD separado do número</td></tr>
+        <tr><td class="field-name">ddd_celular / telefone_celular</td><td class="field-type">string/int</td><td class="field-example">31 / "99164-0603"</td><td class="field-note">DDD separado do número</td></tr>
+        <tr><td class="field-name">email</td><td class="field-type">string</td><td class="field-example">"ramon.fos@gmail.com"</td><td class="field-note">—</td></tr>
+        <tr><td class="field-name">email_auxiliar</td><td class="field-type">string</td><td class="field-example">""</td><td class="field-note">—</td></tr>
+        <tr><td class="field-name">data_cadastro_beneficiario</td><td class="field-type">date</td><td class="field-example">"2022-04-27"</td><td class="field-note">—</td></tr>
+        <tr><td class="field-name">data_contrato_beneficiario</td><td class="field-type">date</td><td class="field-example">"2022-04-27"</td><td class="field-note">—</td></tr>
+        <tr><td class="field-name">hora_contrato_beneficiario</td><td class="field-type">time</td><td class="field-example">"15:30:56"</td><td class="field-note">—</td></tr>
+        <tr><td class="field-name">codigo_situacao</td><td class="field-type">string</td><td class="field-example">"1"</td><td class="field-note">—</td></tr>
+        <tr><td class="field-name">descricao_situacao</td><td class="field-type">string</td><td class="field-example">"ATIVO"</td><td class="field-note">—</td></tr>
+        <tr><td class="field-name">valor_fixo</td><td class="field-type">decimal</td><td class="field-example">0</td><td class="field-note">—</td></tr>
+        <tr><td class="field-name">participacao</td><td class="field-type">decimal</td><td class="field-example">0</td><td class="field-note">—</td></tr>
+        <tr><td class="field-name">valor_adesao</td><td class="field-type">decimal</td><td class="field-example">0</td><td class="field-note">—</td></tr>
+        <tr><td class="field-name">pontos</td><td class="field-type">int</td><td class="field-example">0</td><td class="field-note">—</td></tr>
+        <tr><td class="field-name">radio / radio2</td><td class="field-type">string</td><td class="field-example">""</td><td class="field-note">Uso não identificado</td></tr>
+        <tr><td class="field-name">codigo_voluntario</td><td class="field-type">string</td><td class="field-example">null</td><td class="field-note">Nullable</td></tr>
+        <tr><td class="field-name">campos_opcionais</td><td class="field-type">array</td><td class="field-example">["sem campo opcional..."]</td><td class="field-note">Campo genérico — pode variar</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- BENEFÍCIO -->
+  <div class="entity-block eb-beneficio">
+    <div class="entity-header">
+      <span class="entity-icon">🎁</span>
+      <span class="entity-name">Benefício</span>
+      <div class="entity-meta">
+        <span class="meta-pill">SGA</span>
+        <span class="meta-pill">catálogo + vínculo ao beneficiário</span>
+      </div>
+    </div>
+    <table class="fields-table">
+      <thead><tr><th style="width:22%">Campo SGA</th><th style="width:12%">Tipo</th><th style="width:28%">Exemplo</th><th>Observação</th></tr></thead>
+      <tbody>
+        <tr><td class="field-name">codigo_beneficio</td><td class="field-type">string</td><td class="field-example">"2"</td><td class="field-note"><span class="tag-pill tag-ok">ID no SGA</span></td></tr>
+        <tr><td class="field-name">decricao_beneficio</td><td class="field-type">string</td><td class="field-example">"BENEFICIO HINOVA MAIS"</td><td class="field-note"><span class="tag-pill tag-typo">Typo: "decricao"</span></td></tr>
+        <tr><td class="field-name">valor_beneficio</td><td class="field-type">string</td><td class="field-example">"0.00"</td><td class="field-note">String → converter para decimal</td></tr>
+        <tr><td class="field-name">idade_beneficiario_inicial</td><td class="field-type">int</td><td class="field-example">0</td><td class="field-note">0 = sem restrição mínima de idade</td></tr>
+        <tr><td class="field-name">idade_beneficiario_final</td><td class="field-type">int</td><td class="field-example">100</td><td class="field-note">100 = sem restrição máxima de idade</td></tr>
+        <tr><td class="field-name">padrao</td><td class="field-type">string</td><td class="field-example">"Y"</td><td class="field-note">"Y" = benefício padrão do plano</td></tr>
+        <tr><td class="field-name">id_classificacaobeneficio</td><td class="field-type">int</td><td class="field-example">1</td><td class="field-note">Código da categoria</td></tr>
+        <tr><td class="field-name">classificacao_beneficio</td><td class="field-type">string</td><td class="field-example">"NÃO INFORMADO"</td><td class="field-note">ex: DESCONTO, PRODUTO ADICIONAL, OUTROS</td></tr>
+        <tr><td class="field-name">— (vínculo)</td><td class="field-type">—</td><td class="field-example">—</td><td class="field-note">—</td></tr>
+        <tr><td class="field-name">situacao (no vínculo)</td><td class="field-type">string</td><td class="field-example">"ATIVO" / "INATIVO"</td><td class="field-note">Status do benefício para aquele beneficiário</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- BOLETO -->
+  <div class="entity-block eb-boleto">
+    <div class="entity-header">
+      <span class="entity-icon">💰</span>
+      <span class="entity-name">Boleto</span>
+      <div class="entity-meta">
+        <span class="meta-pill">SGA</span>
+        <span class="meta-pill">por associado / mês</span>
+      </div>
+    </div>
+    <table class="fields-table">
+      <thead><tr><th style="width:22%">Campo SGA</th><th style="width:12%">Tipo</th><th style="width:28%">Exemplo</th><th>Observação</th></tr></thead>
+      <tbody>
+        <tr><td class="field-name">codigo_boleto</td><td class="field-type">string</td><td class="field-example">"501320"</td><td class="field-note"><span class="tag-pill tag-ok">ID no SGA</span></td></tr>
+        <tr><td class="field-name">nosso_numero</td><td class="field-type">int</td><td class="field-example">1047889</td><td class="field-note">Necessário para conciliação bancária</td></tr>
+        <tr><td class="field-name">codigo_associado</td><td class="field-type">string</td><td class="field-example">"17345"</td><td class="field-note">FK → Associado</td></tr>
+        <tr><td class="field-name">nome_associado</td><td class="field-type">string</td><td class="field-example">"RAMON FIGUEIREDO..."</td><td class="field-note">Desnormalizado</td></tr>
+        <tr><td class="field-name">cpf_associado</td><td class="field-type">string</td><td class="field-example">"09743888667"</td><td class="field-note">Desnormalizado</td></tr>
+        <tr><td class="field-name">mes_referente</td><td class="field-type">string</td><td class="field-example">"05/2022"</td><td class="field-note">Converter para YYYY-MM</td></tr>
+        <tr><td class="field-name">data_emissao</td><td class="field-type">date</td><td class="field-example">"2022-05-26"</td><td class="field-note">—</td></tr>
+        <tr><td class="field-name">data_vencimento_original</td><td class="field-type">date</td><td class="field-example">"2022-06-10"</td><td class="field-note">—</td></tr>
+        <tr><td class="field-name">data_vencimento</td><td class="field-type">date</td><td class="field-example">"2022-06-10"</td><td class="field-note">Data efetiva de vencimento</td></tr>
+        <tr><td class="field-name">valor_boleto</td><td class="field-type">string</td><td class="field-example">"168.75"</td><td class="field-note">String → converter para decimal</td></tr>
+        <tr><td class="field-name">codigo_situacao_boleto</td><td class="field-type">string</td><td class="field-example">"999"</td><td class="field-note">Código numérico</td></tr>
+        <tr><td class="field-name">descricao_situacao_boleto</td><td class="field-type">string</td><td class="field-example">"EXCLUIDO"</td><td class="field-note"><span class="tag-pill tag-warn">Pode ter pagamento mesmo "EXCLUIDO"</span></td></tr>
+        <tr><td class="field-name">pago</td><td class="field-type">string</td><td class="field-example">"N"</td><td class="field-note">"S" ou "N"</td></tr>
+        <tr><td class="field-name">data_pagamento</td><td class="field-type">date</td><td class="field-example">"2022-06-03"</td><td class="field-note">Nullable</td></tr>
+        <tr><td class="field-name">valor_pagamento</td><td class="field-type">decimal</td><td class="field-example">168.75</td><td class="field-note">Nullable</td></tr>
+        <tr><td class="field-name">data_credito_banco</td><td class="field-type">date</td><td class="field-example">"2022-06-04"</td><td class="field-note">Nullable</td></tr>
+        <tr><td class="field-name">descricao_forma_pagamento</td><td class="field-type">string</td><td class="field-example">"BOLETO"</td><td class="field-note">—</td></tr>
+        <tr><td class="field-name">tarifa_cobranca_banco</td><td class="field-type">decimal</td><td class="field-example">1.99</td><td class="field-note">—</td></tr>
+        <tr><td class="field-name">codigo_tipo_boleto</td><td class="field-type">string</td><td class="field-example">"5"</td><td class="field-note">—</td></tr>
+        <tr><td class="field-name">descricao_tipo_boleto</td><td class="field-type">string</td><td class="field-example">"FECHAMENTO"</td><td class="field-note">—</td></tr>
+        <tr><td class="field-name">nome_banco</td><td class="field-type">string</td><td class="field-example">"HINOVA PAY"</td><td class="field-note">—</td></tr>
+        <tr><td class="field-name">descricao_tipo_baixa_boleto</td><td class="field-type">string</td><td class="field-example">"BAIXA AUTOMATICA..."</td><td class="field-note">—</td></tr>
+        <tr><td class="field-name">referente</td><td class="field-type">string</td><td class="field-example">"Referente a: Mensalidade05/2022"</td><td class="field-note">Texto descritivo</td></tr>
+        <tr><td class="field-name">veiculo</td><td class="field-type">array</td><td class="field-example">["23836", "23861"]</td><td class="field-note"><span class="tag-pill tag-multi">Array</span> boleto cobre múltiplos veículos</td></tr>
+        <tr><td class="field-name">beneficiario</td><td class="field-type">array</td><td class="field-example">[""]</td><td class="field-note">Vazio nos exemplos — verificar uso</td></tr>
+        <tr><td class="field-name">codigo_regional</td><td class="field-type">string</td><td class="field-example">"2"</td><td class="field-note"><span class="tag-pill tag-pending">Validar com negócio</span></td></tr>
+        <tr><td class="field-name">nome_regional_boleto</td><td class="field-type">string</td><td class="field-example">"TOP BRASIL PV"</td><td class="field-note"><span class="tag-pill tag-pending">Validar com negócio</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="footer">
+    <div class="footer-note">v2.0 — Campos SGA por entidade · 7 entidades · Fev 2026</div>
+  </div>
+
+</div>
+</body>
+</html>

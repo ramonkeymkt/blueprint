@@ -1,0 +1,466 @@
+{
+  "header": {
+    "version": "// Blueprint — v1.2",
+    "title": "Ecossistema de",
+    "titleHighlight": "Proteção Veicular",
+    "date": "Fev 2026",
+    "status": "● Em mapeamento"
+  },
+  "footer": {
+    "note": "v1.3 — Organizado por setor e sistema",
+    "nextStep": "→ próximo: roadmap e prioridades"
+  },
+  "layers": [
+    {
+      "id": "l3",
+      "number": "CAMADA 3",
+      "title": "Experiência — Acesso externo por associados",
+      "desc": "Interfaces externas",
+      "type": "l3",
+      "systems": [
+        {
+          "id": "reg-app",
+          "modules": [],
+          "name": "App Associado",
+          "vendor": "Próprio"
+        }
+      ]
+    },
+    {
+      "id": "l2",
+      "number": "CAMADA 2",
+      "title": "Operacional — Processos internos organizados por setor",
+      "desc": "Ferramentas internas",
+      "type": "l2",
+      "systems": [
+        {
+          "id": "reg-powercrm",
+          "modules": [
+            {
+              "moduleId": "mod-1772466983766",
+              "name": "Vendas",
+              "devStatus": "in_progress",
+              "sectorIds": [
+                "s-l2-4"
+              ]
+            },
+            {
+              "moduleId": "mod-1772466988118",
+              "name": "Cobrança",
+              "devStatus": "planned",
+              "sectorIds": []
+            },
+            {
+              "moduleId": "mod-1772466992534",
+              "name": "Pós Vendas",
+              "devStatus": "planned",
+              "sectorIds": []
+            }
+          ],
+          "name": "Power CRM",
+          "vendor": "Hinova"
+        },
+        {
+          "id": "reg-sga",
+          "modules": [
+            {
+              "moduleId": "mod-1772490950805",
+              "name": "Consultores",
+              "devStatus": null,
+              "sectorIds": [
+                "sec-1772466916633"
+              ]
+            },
+            {
+              "moduleId": "mod-1772490945318",
+              "name": "Associados",
+              "devStatus": null,
+              "sectorIds": [
+                "sec-1772466916633"
+              ]
+            },
+            {
+              "moduleId": "mod-1772490948038",
+              "name": "Veiculos",
+              "devStatus": null,
+              "sectorIds": [
+                "sec-1772466916633"
+              ]
+            },
+            {
+              "moduleId": "mod-1772490960375",
+              "name": "Serviços",
+              "devStatus": null,
+              "sectorIds": [
+                "sec-1772466916633"
+              ]
+            },
+            {
+              "moduleId": "mod-1772548582796",
+              "name": "Beneficiários",
+              "devStatus": null,
+              "sectorIds": [
+                "sec-1772466916633"
+              ]
+            },
+            {
+              "moduleId": "mod-1772548588060",
+              "name": "Beneficios",
+              "devStatus": null,
+              "sectorIds": [
+                "sec-1772466916633"
+              ]
+            },
+            {
+              "moduleId": "mod-1772466363747",
+              "devStatus": "planned",
+              "sectorIds": [
+                "s-l2-8",
+                "s-l2-7",
+                "s-l2-9",
+                "s-l2-10"
+              ],
+              "name": "Boletos"
+            },
+            {
+              "moduleId": "mod-1772467793915",
+              "name": "Eventos",
+              "devStatus": null,
+              "sectorIds": []
+            }
+          ],
+          "name": "SGA",
+          "vendor": "Hinova"
+        },
+        {
+          "id": "reg-visto",
+          "modules": [
+            {
+              "moduleId": "mod-1772467994168",
+              "name": "Vistoria",
+              "devStatus": "done",
+              "sectorIds": []
+            },
+            {
+              "moduleId": "mod-1772468001528",
+              "name": "Revistoria",
+              "devStatus": "planned",
+              "sectorIds": []
+            }
+          ],
+          "name": "Visto",
+          "vendor": "Hinova"
+        },
+        {
+          "id": "reg-mgf",
+          "modules": [
+            {
+              "moduleId": "mod-1772467150196",
+              "name": "Contas a Pagar",
+              "devStatus": "planned",
+              "sectorIds": []
+            },
+            {
+              "moduleId": "mod-1772468214853",
+              "name": "Boletos",
+              "devStatus": null,
+              "sectorIds": []
+            },
+            {
+              "moduleId": "mod-1772567484187",
+              "name": "Financeiro",
+              "devStatus": null,
+              "sectorIds": []
+            },
+            {
+              "moduleId": "mod-1772567486508",
+              "name": "Fiscal",
+              "devStatus": null,
+              "sectorIds": []
+            }
+          ],
+          "name": "MGF / SANKHYA",
+          "vendor": ""
+        },
+        {
+          "id": "sys-1772473315011",
+          "name": "Gestão de Boletos",
+          "vendor": "",
+          "modules": [
+            {
+              "moduleId": "mod-1772473375023",
+              "name": "Pagamento x Inadimplentes",
+              "devStatus": "done",
+              "sectorIds": []
+            }
+          ]
+        },
+        {
+          "id": "reg-ezchat",
+          "modules": [],
+          "name": "ezchat",
+          "vendor": "ezchat"
+        },
+        {
+          "id": "reg-webassist",
+          "modules": [
+            {
+              "moduleId": "mod-1772467831596",
+              "name": "Abertura de Assistência",
+              "devStatus": "in_progress",
+              "sectorIds": [
+                "s-l2-2"
+              ]
+            },
+            {
+              "moduleId": "mod-1772467839946",
+              "name": "Credenciamento",
+              "devStatus": "in_progress",
+              "sectorIds": [
+                "s-l2-2"
+              ]
+            },
+            {
+              "moduleId": "mod-1772467847211",
+              "name": "NF",
+              "devStatus": "in_progress",
+              "sectorIds": [
+                "s-l2-2"
+              ]
+            },
+            {
+              "moduleId": "mod-1772483688819",
+              "name": "Webprestador",
+              "devStatus": null,
+              "sectorIds": []
+            }
+          ],
+          "name": "WebAssist",
+          "vendor": ""
+        },
+        {
+          "id": "sys-1772473286839",
+          "name": "Abertura de Eventos",
+          "vendor": "",
+          "modules": [
+            {
+              "moduleId": "mod-1772473343711",
+              "name": "Abertura",
+              "devStatus": "in_progress",
+              "sectorIds": []
+            }
+          ]
+        },
+        {
+          "id": "reg-siga",
+          "modules": [],
+          "name": "SIGA",
+          "vendor": "Arco"
+        },
+        {
+          "id": "reg-cilia",
+          "modules": [],
+          "name": "Cilia",
+          "vendor": ""
+        },
+        {
+          "id": "reg-sgr",
+          "modules": [
+            {
+              "moduleId": "mod-1772569578638",
+              "name": "Cadastro",
+              "devStatus": "planned",
+              "sectorIds": []
+            },
+            {
+              "moduleId": "mod-1772569590900",
+              "name": "Integração",
+              "devStatus": "planned",
+              "sectorIds": []
+            }
+          ],
+          "name": "SGR",
+          "vendor": "Hinova"
+        },
+        {
+          "id": "reg-logica",
+          "modules": [],
+          "name": "Lógica",
+          "vendor": "Hinova"
+        },
+        {
+          "id": "sys-1772541731931",
+          "name": "Banco Digital",
+          "vendor": "",
+          "modules": []
+        }
+      ]
+    },
+    {
+      "id": "l1",
+      "number": "CAMADA 1",
+      "title": "Núcleo de Dados — Hub central de integração",
+      "desc": "Fonte única da verdade",
+      "type": "l1",
+      "isHub": true,
+      "hub": {
+        "hierarchy": [
+          {
+            "id": "h1",
+            "label": "👤 Consultor",
+            "indent": 0
+          },
+          {
+            "id": "h2",
+            "label": "↳ 👥 Associado",
+            "indent": 1
+          },
+          {
+            "id": "h3",
+            "label": "↳ 🚗 Veículo",
+            "indent": 2
+          },
+          {
+            "id": "h4",
+            "label": "↳ ⚙️ Serviço",
+            "indent": 3
+          },
+          {
+            "id": "h5",
+            "label": "↳ 🧑‍🤝‍🧑 Beneficiário",
+            "indent": 2
+          },
+          {
+            "id": "h6",
+            "label": "↳ 🎁 Benefício",
+            "indent": 3
+          },
+          {
+            "id": "h7",
+            "label": "↳ 💰 Boleto",
+            "indent": 2
+          },
+          {
+            "id": "h8",
+            "label": "↳ 🏦 Bancos",
+            "indent": 3
+          }
+        ],
+        "name": "Data Hub Próprio",
+        "subtitle": "// a construir",
+        "features": [
+          {
+            "id": "f1",
+            "label": "→ Base central do associado"
+          },
+          {
+            "id": "f2",
+            "label": "→ Integração entre sistemas"
+          },
+          {
+            "id": "f3",
+            "label": "→ Relatórios e indicadores"
+          },
+          {
+            "id": "f4",
+            "label": "→ API Gateway"
+          },
+          {
+            "id": "f5",
+            "label": "→ Autenticação e acessos"
+          }
+        ]
+      }
+    }
+  ],
+  "sectorsRegistry": [
+    {
+      "id": "s-l3-1",
+      "name": "Associado"
+    },
+    {
+      "id": "s-l2-1",
+      "name": "Atendimento ao Associado"
+    },
+    {
+      "id": "s-l2-2",
+      "name": "Assistência 24h"
+    },
+    {
+      "id": "s-l2-3",
+      "name": "Atendimento aos Consultores"
+    },
+    {
+      "id": "s-l2-4",
+      "name": "Comercial"
+    },
+    {
+      "id": "s-l2-5",
+      "name": "Cadastro"
+    },
+    {
+      "id": "s-l2-6",
+      "name": "Pós-Vendas"
+    },
+    {
+      "id": "s-l2-7",
+      "name": "Cancelamento"
+    },
+    {
+      "id": "s-l2-8",
+      "name": "Boletos"
+    },
+    {
+      "id": "s-l2-9",
+      "name": "Cobrança Interna"
+    },
+    {
+      "id": "s-l2-10",
+      "name": "Cobrança Extrajudicial"
+    },
+    {
+      "id": "s-l2-11",
+      "name": "Jurídico"
+    },
+    {
+      "id": "s-l2-12",
+      "name": "Eventos"
+    },
+    {
+      "id": "s-l2-13",
+      "name": "Rastreadores"
+    },
+    {
+      "id": "s-l2-14",
+      "name": "Financeiro"
+    },
+    {
+      "id": "s-l2-15",
+      "name": "CS"
+    },
+    {
+      "id": "s-l2-16",
+      "name": "RH"
+    },
+    {
+      "id": "s-l2-17",
+      "name": "Compras"
+    },
+    {
+      "id": "s-l2-18",
+      "name": "Marketing"
+    },
+    {
+      "id": "s-l2-19",
+      "name": "TI"
+    },
+    {
+      "id": "sec-1772466916633",
+      "name": "Todos"
+    },
+    {
+      "id": "sec-1772467036881",
+      "name": "Consultores"
+    }
+  ]
+}

@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Roadmap — Ecossistema de Proteção Veicular</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #f8fafc;
+    --border: #e2e8f0;
+    --accent: #0369a1;
+    --text: #0f172a;
+    --muted: #0f172a;
+    --c-nucleo:   #0369a1;  /* Azul    — infraestrutura */
+    --c-crm:      #6d28d9;  /* Violeta — comercial      */
+    --c-boletos:  #047857;  /* Verde   — financeiro     */
+    --c-admin:    #ea580c;  /* Laranja — back-office    */
+    --c-etl:      #ca8a04;  /* Amarelo — dados          */
+    --c-migracao: #dc2626;  /* Vermelho — evento crítico */
+    --c-proximo:  #94a3b8;
+    --c-po:       #be185d;
+  }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Syne', sans-serif;
+    min-height: 100vh;
+    padding: 40px 32px;
+    background-image:
+      radial-gradient(ellipse at 10% 0%, rgba(3,105,161,0.05) 0%, transparent 55%),
+      radial-gradient(ellipse at 90% 100%, rgba(4,120,87,0.04) 0%, transparent 55%);
+  }
+  .page { max-width: 1200px; margin: 0 auto; }
+
+  /* HEADER */
+  .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 40px;
+    padding-bottom: 24px;
+    border-bottom: 1px solid var(--border);
+  }
+  .tag { font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--accent); letter-spacing: 2px; text-transform: uppercase; margin-bottom: 8px; }
+  h1 { font-size: 28px; font-weight: 800; letter-spacing: -0.5px; }
+  h1 span { color: var(--accent); }
+  .header-right { text-align: right; }
+  .date { font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--muted); }
+  .badge-header {
+    display: inline-block; margin-top: 8px; padding: 4px 12px; border-radius: 20px;
+    background: rgba(3,105,161,0.08); border: 1px solid rgba(3,105,161,0.25);
+    font-size: 11px; color: var(--accent); font-family: 'IBM Plex Mono', monospace;
+  }
+
+  /* LEGEND */
+  .legend { display: flex; gap: 20px; margin-bottom: 28px; flex-wrap: wrap; }
+  .legend-item { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--muted); font-family: 'IBM Plex Mono', monospace; }
+  .legend-dot { width: 10px; height: 10px; border-radius: 2px; }
+
+  /* DEVS */
+  .devs {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    margin-bottom: 28px;
+    animation: fadeUp 0.4s ease both;
+  }
+  .dev-card {
+    border-radius: 10px;
+    padding: 14px 18px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .dev-crm    { background: #f1f5f9; border: 1px solid #e2e8f0; }
+  .dev-nucleo { background: #f1f5f9; border: 1px solid #e2e8f0; }
+  .dev-admin  { background: #f1f5f9; border: 1px solid #e2e8f0; }
+  .dev-po     { background: #f1f5f9; border: 1px solid #e2e8f0; }
+  .dev-avatar {
+    width: 36px; height: 36px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px; font-weight: 800; flex-shrink: 0;
+    background: #e2e8f0; color: #475569;
+  }
+  .dev-info {}
+  .dev-name { font-size: 14px; font-weight: 700; margin-bottom: 3px; color: #0f172a; }
+  .dev-crm .dev-name    { color: #0f172a; }
+  .dev-nucleo .dev-name { color: #0f172a; }
+  .dev-admin .dev-name  { color: #0f172a; }
+  .dev-po .dev-name     { color: #0f172a; }
+  .dev-scope { font-size: 11px; color: var(--muted); font-family: 'IBM Plex Mono', monospace; }
+
+  /* ROADMAP TABLE */
+  .roadmap { margin-bottom: 28px; animation: fadeUp 0.4s 0.1s ease both; }
+
+  .months-header {
+    display: grid;
+    grid-template-columns: 140px repeat(3, 1fr);
+    gap: 8px;
+    margin-bottom: 10px;
+  }
+  .month-spacer {}
+  .month-col {
+    text-align: center;
+    padding: 8px 12px;
+    border-radius: 8px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+  }
+  .month-col.m1 { background: #f1f5f9; border: 1px solid #e2e8f0; color: #475569; }
+  .month-col.m2 { background: #f1f5f9; border: 1px solid #e2e8f0; color: #475569; }
+  .month-col.m3 { background: #f1f5f9; border: 1px solid #e2e8f0; color: #475569; }
+  .month-col strong { display: block; font-size: 13px; margin-bottom: 2px; }
+
+  /* LANE */
+  .lane {
+    display: grid;
+    grid-template-columns: 140px repeat(3, 1fr);
+    gap: 8px;
+    margin-bottom: 8px;
+    animation: fadeUp 0.5s ease both;
+  }
+  .lane:nth-child(2) { animation-delay: 0.05s; }
+  .lane:nth-child(3) { animation-delay: 0.1s; }
+  .lane:nth-child(4) { animation-delay: 0.15s; }
+  .lane:nth-child(5) { animation-delay: 0.2s; }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(10px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .lane-label {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 4px;
+    padding-right: 8px;
+  }
+  .lane-name { font-size: 12px; font-weight: 700; font-family: 'IBM Plex Mono', monospace; }
+  .lane-dev  { font-size: 10px; color: var(--muted); font-family: 'IBM Plex Mono', monospace; }
+
+  .lane-crm    .lane-name { color: var(--c-crm); }
+  .lane-nucleo .lane-name { color: var(--c-nucleo); }
+  .lane-boletos .lane-name { color: var(--c-boletos); }
+  .lane-migracao .lane-name { color: var(--c-migracao); }
+  .lane-proximo .lane-name  { color: var(--c-proximo); }
+  .lane-admin .lane-name    { color: var(--c-admin); }
+  .lane-etl .lane-name      { color: var(--c-etl); }
+  .lane-po .lane-name  { color: var(--c-po); }
+
+  /* TASK */
+  .task {
+    border-radius: 8px;
+    padding: 12px 14px;
+    position: relative;
+    min-height: 80px;
+  }
+  .task-empty {
+    border-radius: 8px;
+    border: 1px dashed rgba(0,0,0,0.08);
+    min-height: 80px;
+  }
+
+  .lane-crm    .task { background: rgba(109,40,217,0.04);  border: 1px solid rgba(109,40,217,0.15); }
+  .lane-nucleo .task { background: rgba(3,105,161,0.04);   border: 1px solid rgba(3,105,161,0.15); }
+  .lane-boletos .task { background: rgba(4,120,87,0.04);   border: 1px solid rgba(4,120,87,0.15); }
+  .lane-migracao .task { background: rgba(220,38,38,0.04);  border: 1px solid rgba(220,38,38,0.15); }
+  .lane-proximo .task  { background: rgba(148,163,184,0.06); border: 1px dashed rgba(148,163,184,0.3); }
+  .lane-admin .task    { background: rgba(234,88,12,0.04);  border: 1px solid rgba(234,88,12,0.15); }
+  .lane-etl .task      { background: rgba(202,138,4,0.04); border: 1px dashed rgba(202,138,4,0.2); }
+  .lane-po .task  { background: rgba(190,24,93,0.04);      border: 1px solid rgba(190,24,93,0.15); }
+
+  .task-title { font-size: 12px; font-weight: 700; margin-bottom: 8px; }
+  .lane-crm    .task-title { color: var(--c-crm); }
+  .lane-nucleo .task-title { color: var(--c-nucleo); }
+  .lane-boletos .task-title { color: var(--c-boletos); }
+  .lane-migracao .task-title { color: var(--c-migracao); }
+  .lane-proximo .task-title  { color: var(--c-proximo); }
+  .lane-admin .task-title    { color: var(--c-admin); }
+  .lane-etl .task-title      { color: var(--c-etl); }
+  .lane-po .task-title  { color: var(--c-po); }
+
+  .task-items { display: flex; flex-direction: column; gap: 3px; }
+  .task-item {
+    font-size: 12px;
+    font-family: 'IBM Plex Mono', monospace;
+    color: var(--muted);
+    padding-left: 10px;
+    border-left: 2px solid rgba(0,0,0,0.2);
+  }
+  .task-item::before { content: '→ '; opacity: 0.6; }
+  .task-tree {
+    font-size: 11px;
+    font-family: 'IBM Plex Mono', monospace;
+    color: var(--muted);
+    white-space: pre;
+    line-height: 1.65;
+    padding: 2px 0 2px 10px;
+    border-left: 2px solid rgba(0,0,0,0.2);
+    overflow: hidden;
+  }
+
+  .ms {
+    position: absolute;
+    top: 8px; right: 8px;
+    font-size: 9px; font-family: 'IBM Plex Mono', monospace;
+    padding: 2px 6px; border-radius: 3px;
+  }
+  .ms-crm     { background: rgba(109,40,217,0.1);  color: var(--c-crm); }
+  .ms-nucleo  { background: rgba(3,105,161,0.1);   color: var(--c-nucleo); }
+  .ms-boletos { background: rgba(4,120,87,0.1);    color: var(--c-boletos); }
+  .ms-go      { background: rgba(220,38,38,0.1);   color: var(--c-migracao); }
+  .ms-admin   { background: rgba(234,88,12,0.1);   color: var(--c-admin); }
+  .ms-etl     { background: rgba(202,138,4,0.1);  color: var(--c-etl); }
+  .ms-po      { background: rgba(190,24,93,0.1);   color: var(--c-po); }
+
+  /* DEPS */
+  .deps {
+    background: rgba(3,105,161,0.03);
+    border: 1px solid rgba(3,105,161,0.15);
+    border-radius: 12px;
+    padding: 16px 22px;
+    margin-bottom: 28px;
+  }
+  .deps-title { font-size: 10px; font-weight: 700; color: var(--accent); font-family: 'IBM Plex Mono', monospace; margin-bottom: 12px; letter-spacing: 1.5px; text-transform: uppercase; }
+  .deps-flow { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .dep-node { padding: 5px 12px; border-radius: 5px; font-size: 11px; font-weight: 700; font-family: 'IBM Plex Mono', monospace; }
+  .dep-n { background: rgba(3,105,161,0.08);  color: var(--c-nucleo);   border: 1px solid rgba(3,105,161,0.2); }
+  .dep-c { background: rgba(109,40,217,0.08); color: var(--c-crm);      border: 1px solid rgba(109,40,217,0.2); }
+  .dep-b { background: rgba(4,120,87,0.08);   color: var(--c-boletos);  border: 1px solid rgba(4,120,87,0.2); }
+  .dep-m { background: rgba(220,38,38,0.08);   color: var(--c-migracao); border: 1px solid rgba(220,38,38,0.2); }
+  .dep-e { background: rgba(202,138,4,0.07);  color: var(--c-etl);      border: 1px dashed rgba(202,138,4,0.25); }
+  .dep-a { background: rgba(234,88,12,0.08);   color: var(--c-admin);    border: 1px solid rgba(234,88,12,0.2); }
+  .dep-arrow { color: var(--muted); font-size: 14px; }
+
+  /* FOOTER */
+  .footer { padding-top: 18px; border-top: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+  .footer-note { font-size: 11px; color: var(--muted); font-family: 'IBM Plex Mono', monospace; }
+  .next-step { font-size: 12px; padding: 8px 16px; border-radius: 6px; background: rgba(3,105,161,0.07); border: 1px solid rgba(3,105,161,0.2); color: var(--accent); font-family: 'IBM Plex Mono', monospace; }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <div class="header">
+    <div>      
+      <h1>Roadmap<br><span>Núcleo + Boletos</span></h1>
+    </div>
+  </div>
+
+  <!-- DEVS -->
+  <div class="devs">
+    <div class="dev-card dev-po">
+      <div class="dev-avatar">Ra</div>
+      <div class="dev-info">
+        <div class="dev-name">Ramon <span style="font-size:9px;font-family:'IBM Plex Mono',monospace;opacity:0.6">PO</span></div>
+        <div class="dev-scope">Levantamentos · Regras de negócio · Aceite · Go-live</div>
+      </div>
+    </div>
+    <div class="dev-card dev-crm">
+      <div class="dev-avatar">R</div>
+      <div class="dev-info">
+        <div class="dev-name">Ricardo</div>
+        <div class="dev-scope">CRM · Núcleo de dados · integração · go-live comercial</div>
+      </div>
+    </div>
+    <div class="dev-card dev-nucleo">
+      <div class="dev-avatar">K</div>
+      <div class="dev-info">
+        <div class="dev-name">Kelvy</div>
+        <div class="dev-scope">Núcleo de dados · API Gateway · Boletos · Admin backend</div>
+      </div>
+    </div>
+    <div class="dev-card dev-admin">
+      <div class="dev-avatar">A</div>
+      <div class="dev-info">
+        <div class="dev-name">Alex</div>
+        <div class="dev-scope">Módulo Administrativo · Frontend · Interfaces e formulários</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ROADMAP -->
+  <div class="roadmap">
+
+    <div class="months-header">
+      <div class="month-spacer"></div>
+      <div class="month-col m1"><strong>Março</strong>Fundação</div>
+      <div class="month-col m2"><strong>Abril</strong>Integração & Homologação</div>
+      <div class="month-col m3"><strong>Maio</strong>Go-live</div>
+    </div>
+
+
+    <!-- CRM — Ricardo -->
+    <div class="lane lane-crm">
+      <div class="lane-label">
+        <div class="lane-name">CRM</div>
+        <div class="lane-dev">Ricardo</div>
+      </div>
+      <div class="task">
+        <div class="task-title">CRM V1</div>
+        <div class="task-items">
+          <div class="task-item">Funil de Vendas</div>
+          <div class="task-item">&nbsp;&nbsp;├── Landing page</div>
+          <div class="task-item">&nbsp;&nbsp;├── Kanban de leads</div>
+          <div class="task-item">&nbsp;&nbsp;├── Vistoria</div>
+          <div class="task-item">&nbsp;&nbsp;└── Assinatura</div>
+          <div class="task-item">Tabelas de Preço</div>
+          <div class="task-item">&nbsp;&nbsp;├── Regionais · Planos</div>
+          <div class="task-item">&nbsp;&nbsp;└── Tabelas · Serviços</div>
+          <div class="task-item">Perfis e Usuários (Vendas e Administrativo)</div>
+          <div class="task-item">&nbsp;&nbsp;├── Link consultor</div>
+          <div class="task-item">&nbsp;&nbsp;├── Gerenciamento</div>
+          <div class="task-item">&nbsp;&nbsp;└── Permissões</div>
+          <div class="task-item">Rotina de Pendências</div>
+          <div class="task-item">&nbsp;&nbsp;└── Atividades principais do consultor</div>
+        </div>
+      </div>
+      <div class="task">
+        <div class="task-title">Conexão com Núcleo</div>
+        <div class="task-items">
+          <div class="task-item">Integrar CRM ao Data Hub via API</div>
+          <div class="task-item">Sincronizar dados de Consultor e Associado</div>
+          <div class="task-item">Testes de integração e validação</div>
+        </div>
+      </div>
+      <div class="task">
+        <div class="task-title">CRM em produção</div>
+        <div class="task-items">
+          <div class="task-item">Substituição do Power CRM (Hinova)</div>
+          <div class="task-item">Time comercial operando no sistema próprio</div>
+          <div class="task-item">Suporte e ajustes pós go-live</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ADMIN — Alex -->
+    <div class="lane lane-admin">
+      <div class="lane-label">
+        <div class="lane-name">Administrativo</div>
+        <div class="lane-dev">Alex</div>
+      </div>
+      <div class="task" style="grid-column: span 2;">
+        <div class="task-title">Build e integração</div>
+        <div class="task-items">
+          <div class="task-item">Empresa · Regional · Consultor · Associado · Veículo · Plano · Beneficiário · Benefício · Serviço</div>
+          <div class="task-item">Formulários de vinculação e validação</div>
+          <div class="task-item">Integração das telas com APIs reais do núcleo</div>
+          <div class="task-item">Testes de integração por fluxo</div>
+          <div class="task-item">Validação com usuários-chave</div>
+          <div class="task-item">Ajustes de UX e correções</div>
+        </div>
+      </div>
+      <div class="task">
+        <div class="task-title">Módulo admin em produção</div>
+        <div class="task-items">
+          <div class="task-item">Frontend substituindo telas do SGA</div>
+          <div class="task-item">Fluxos administrativos operando</div>
+          <div class="task-item">Suporte e ajustes pós go-live</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- BOLETOS — Kelvy -->
+    <div class="lane lane-boletos">
+      <div class="lane-label">
+        <div class="lane-name">Boletos</div>
+        <div class="lane-dev">Kelvy</div>
+      </div>
+      <div class="task">
+        <div class="task-title">Build do módulo</div>
+        <div class="task-items">
+          <div class="task-item">Gateway / banco emissor</div>
+          <div class="task-item">Fechamento por preço fixo</div>
+          <div class="task-item">Fluxos de geração:</div>
+          <div class="task-item">&nbsp;&nbsp;├── Fechamento mensal (automático)</div>
+          <div class="task-item">&nbsp;&nbsp;├── Serviços avulsos (manual)</div>
+          <div class="task-item">&nbsp;&nbsp;├── Reemissão por inadimplência</div>
+          <div class="task-item">&nbsp;&nbsp;└── 📌 Demais fluxos a levantar c/ negócio</div>
+          <div class="task-item">API núcleo</div>
+        </div>
+      </div>
+      <div class="task">
+        <div class="task-title">Telas e envio</div>
+        <div class="task-items">
+          <div class="task-item">Listagem de boletos (status · vencimento · valor)</div>
+          <div class="task-item">Geração manual (boleto avulso)</div>
+          <div class="task-item">Alteração de boletos</div>
+          <div class="task-item">Envio ao associado: E-mail · WhatsApp · SMS · App</div>
+          <div class="task-item">Homologação com setor financeiro</div>
+        </div>
+      </div>
+      <div class="task">
+        <div class="task-title">Boletos em produção</div>
+        <div class="task-items">
+          <div class="task-item">Substituição do módulo do SGA</div>
+          <div class="task-item">Operação financeira no sistema próprio</div>
+          <div class="task-item">Suporte e ajustes pós go-live</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- NÚCLEO — Kelvy -->
+    <div class="lane lane-nucleo">
+      <div class="lane-label">
+        <div class="lane-name">Núcleo</div>
+        <div class="lane-dev">Kelvy · Ricardo</div>
+      </div>
+      <div class="task">
+        <div class="task-title">Fundação do Data Hub</div>
+        <div class="task-items">
+          <div class="task-item" style="font-size:10px;opacity:0.6;padding-left:0;border:none;">// CRM</div>
+          <div class="task-tree">Empresa
+  ├── Regional
+  │     └── Cidade
+  │           └── Tabela de Preço
+  │                 ├── Serviços
+  │                 └── Benefícios
+  └── Equipe de Vendas
+        └── Consultor</div>
+          <div class="task-item" style="font-size:10px;opacity:0.6;padding-left:0;border:none;">// Cadastro</div>
+          <div class="task-tree">Empresa
+  └── Regional
+        └── Equipe de Vendas
+              └── Consultor
+                    └── Associado
+                          ├── Veículo → Serviço
+                          ├── Beneficiário → Benefício
+                          └── Boleto</div>
+          <div class="task-item">Banco de dados central (Postgres)</div>
+          <div class="task-item">API Gateway — roteamento e estrutura base</div>
+          <div class="task-item">Autenticação JWT + refresh token</div>
+          <div class="task-item">Perfis de acesso: CRM · ERP</div>
+          <div class="task-item">CRUD completo por entidade:</div>
+          <div class="task-item">&nbsp;&nbsp;Empresa · Regional · Cidade · Consultor</div>
+          <div class="task-item">&nbsp;&nbsp;Equipe de Vendas · Tabela de Preço</div>
+          <div class="task-item">&nbsp;&nbsp;Associado · Veículo · Serviço</div>
+          <div class="task-item">&nbsp;&nbsp;Plano · Beneficiário · Benefício · Boleto</div>          
+        </div>
+      </div>
+      <div class="task">
+        <div class="task-title">Integrações e sincronização SGA</div>
+        <div class="task-items">
+          <div class="task-item">Conectar CRM ao núcleo via API</div>
+          <div class="task-item">Conectar módulo de boletos ao núcleo</div>
+          <div class="task-item">Leitura somente-leitura dos dados do SGA</div>
+          <div class="task-item">Endpoint de sync incremental SGA → núcleo</div>
+          <div class="task-item">Ambiente staging com dados reais para ETL</div>
+        </div>
+      </div>
+      <div class="task">
+        <div class="task-title">Núcleo operacional</div>
+        <div class="task-items">
+          <div class="task-item">API Gateway respondendo em produção</div>
+          <div class="task-item">Todos os CRUDs validados e estáveis</div>
+          <div class="task-item">Auth funcionando para CRM e ERP</div>
+          <div class="task-item">Dados centralizados e consistentes</div>
+          <div class="task-item">Zero regressão nas integrações CRM e Boletos</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ETL / SGA SYNC — Kelvy -->
+    <div class="lane lane-etl">
+      <div class="lane-label">
+        <div class="lane-name">ETL / SGA / CRM</div>
+        <div class="lane-dev">Kelvy · Ricardo · Ramon</div>
+      </div>
+      <div class="task">
+        <div class="task-title">Levantamento e Mapeamento</div>
+        <div class="task-items">
+          <div class="task-item">Mapeamento campos SGA → núcleo (campos-sga-v2)</div>
+          <div class="task-item">Mapeamento dados CRM (Hinova → CRM próprio)</div>
+          <div class="task-item">Identificação de inconsistências e duplicatas</div>
+          <div class="task-item">Definição da estratégia de extração</div>
+        </div>
+      </div>
+      <div class="task">
+        <div class="task-title">Extração e Staging</div>
+        <div class="task-items">
+          <div class="task-item">Scripts de extração dos 70k+ associados</div>
+          <div class="task-item">Carga inicial em ambiente staging</div>
+          <div class="task-item">Conciliação: boletos históricos vs SGA</div>
+        </div>
+      </div>
+      <div class="task">
+        <div class="task-title">Carga e Validação Final</div>
+        <div class="task-items">
+          <div class="task-item">Carga incremental dos registros ativos</div>
+          <div class="task-item">SGA em modo paralelo (somente-leitura)</div>
+          <div class="task-item">Validação com time operacional</div>
+          <div class="task-item">Reconciliação financeira pós-carga</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MIGRAÇÃO -->
+    <div class="lane lane-migracao">
+      <div class="lane-label">
+        <div class="lane-name">Migração</div>
+        <div class="lane-dev">ambos</div>
+      </div>
+      <div class="task-empty"></div>
+      <div class="task">
+        <div class="task-title">Preparação do go-live</div>
+        <div class="task-items">
+          <div class="task-item">Checklist de go-live por módulo</div>
+          <div class="task-item">Critérios de aceite para autorizar virada</div>
+          <div class="task-item">📌 Levantar quais módulos SGA permanecem ativos</div>
+          <div class="task-item">Alinhamento com todas as equipes</div>
+          <div class="task-item">Plano de comunicação da virada</div>
+        </div>
+      </div>
+      <div class="task">
+        <div class="task-title">Migração concluída</div>
+        <div class="task-items">
+          <div class="task-item">Go-live condicionado à validação de todas as lanes</div>
+          <div class="task-item">Desligar Power CRM (Hinova)</div>
+          <div class="task-item">Desligar módulo de boletos do SGA</div>
+          <div class="task-item">📌 Módulos SGA que permanecem — a definir</div>
+          <div class="task-item">Ecossistema próprio operando</div>
+        </div>
+      </div>
+    </div>
+
+
+  </div>
+
+  <!-- DEPENDÊNCIAS -->
+  <div class="deps">
+    <div class="deps-title">// Dependências críticas</div>
+    <div class="deps-flow">
+      <div class="dep-node dep-n">Núcleo — API Gateway + Auth + CRUD</div>
+      <div class="dep-arrow">→</div>
+      <div class="dep-node dep-c">CRM V1</div>
+      <div class="dep-arrow">+</div>
+      <div class="dep-node dep-b">Boletos homologados</div>
+      <div class="dep-arrow">+</div>
+      <div class="dep-node dep-a">Administrativo integrado</div>
+      <div class="dep-arrow">+</div>
+      <div class="dep-node dep-e">ETL / SGA / CRM validado</div>
+      <div class="dep-arrow">→</div>
+      <div class="dep-node dep-m">Go-live Maio ✓</div>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

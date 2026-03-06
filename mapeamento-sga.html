@@ -1,0 +1,710 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mapeamento SGA → Núcleo Top Brasil</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #f8fafc;
+    --border: #e2e8f0;
+    --text: #0f172a;
+    --muted: #475569;
+    --subtle: #94a3b8;
+    --c-consul:  #6d28d9;
+    --c-assoc:   #0369a1;
+    --c-veiculo: #047857;
+    --c-servico: #ea580c;
+    --c-benef:   #0891b2;
+    --c-benefit: #be185d;
+    --c-boleto:  #b45309;
+    --c-warn:    #dc2626;
+    --c-ok:      #16a34a;
+    --c-pending: #ca8a04;
+    --c-arch:    #6d28d9;
+    --c-multi:   #0369a1;
+    --c-typo:    #ea580c;
+  }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Syne', sans-serif;
+    min-height: 100vh;
+    padding: 40px 32px;
+    background-image:
+      radial-gradient(ellipse at 10% 0%, rgba(3,105,161,0.05) 0%, transparent 55%),
+      radial-gradient(ellipse at 90% 100%, rgba(4,120,87,0.04) 0%, transparent 55%);
+  }
+  .page { max-width: 1300px; margin: 0 auto; }
+
+  /* HEADER */
+  .header {
+    display: flex; justify-content: space-between; align-items: flex-start;
+    margin-bottom: 32px; padding-bottom: 24px; border-bottom: 1px solid var(--border);
+  }
+  .tag { font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--c-assoc); letter-spacing: 2px; text-transform: uppercase; margin-bottom: 8px; }
+  h1 { font-size: 28px; font-weight: 800; letter-spacing: -0.5px; line-height: 1.2; }
+  h1 span { color: var(--c-assoc); }
+  .header-right { text-align: right; }
+  .date { font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--muted); }
+  .status-badge {
+    display: inline-block; margin-top: 8px; padding: 4px 12px; border-radius: 20px;
+    background: rgba(3,105,161,0.08); border: 1px solid rgba(3,105,161,0.25);
+    font-size: 11px; color: var(--c-assoc); font-family: 'IBM Plex Mono', monospace;
+  }
+
+  /* NOMENCLATURA */
+  .nomenclatura {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
+    margin-bottom: 24px;
+  }
+  .nom-card {
+    background: #f1f5f9; border: 1px solid var(--border); border-radius: 10px;
+    padding: 14px 18px;
+  }
+  .nom-title { font-size: 10px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: var(--muted); font-family: 'IBM Plex Mono', monospace; margin-bottom: 10px; }
+  .nom-table { width: 100%; border-collapse: collapse; font-family: 'IBM Plex Mono', monospace; font-size: 11px; }
+  .nom-table td { padding: 4px 0; }
+  .nom-table td:first-child { color: var(--muted); width: 50%; }
+  .nom-table td:nth-child(2) { color: var(--muted); width: 16px; text-align: center; }
+  .nom-table td:last-child { color: var(--text); font-weight: 500; }
+
+  /* HIERARQUIA */
+  .estrutura {
+    background: rgba(3,105,161,0.03); border: 1px solid rgba(3,105,161,0.12);
+    border-radius: 10px; padding: 16px 22px; margin-bottom: 24px;
+    font-family: 'IBM Plex Mono', monospace;
+  }
+  .estrutura-title { font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: var(--c-assoc); margin-bottom: 10px; font-weight: 700; }
+  .estrutura-tree { font-size: 12px; color: var(--muted); line-height: 2.1; }
+  .e-consul  { color: var(--c-consul); font-weight: 700; }
+  .e-assoc   { color: var(--c-assoc); font-weight: 700; }
+  .e-veiculo { color: var(--c-veiculo); }
+  .e-servico { color: var(--c-servico); }
+  .e-benef   { color: var(--c-benef); }
+  .e-benefit { color: var(--c-benefit); }
+  .e-boleto  { color: var(--c-boleto); }
+
+  /* STATUS */
+  .status-grid {
+    display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px;
+    margin-bottom: 28px;
+  }
+  .status-card {
+    border-radius: 8px; padding: 10px 12px;
+    background: #f1f5f9; border: 1px solid var(--border);
+    font-family: 'IBM Plex Mono', monospace;
+  }
+  .status-card .sc-name { font-size: 10px; font-weight: 700; margin-bottom: 4px; }
+  .status-card .sc-status { font-size: 9px; color: var(--muted); }
+  .sc-consul  .sc-name { color: var(--c-consul); }
+  .sc-assoc   .sc-name { color: var(--c-assoc); }
+  .sc-veiculo .sc-name { color: var(--c-veiculo); }
+  .sc-servico .sc-name { color: var(--c-servico); }
+  .sc-benef   .sc-name { color: var(--c-benef); }
+  .sc-benefit .sc-name { color: var(--c-benefit); }
+  .sc-boleto  .sc-name { color: var(--c-boleto); }
+
+  /* LEGEND */
+  .legend { display: flex; gap: 18px; margin-bottom: 24px; flex-wrap: wrap; }
+  .legend-item { display: flex; align-items: center; gap: 7px; font-size: 11px; color: var(--muted); font-family: 'IBM Plex Mono', monospace; }
+  .legend-dot { width: 8px; height: 8px; border-radius: 2px; }
+
+  /* ENTITY BLOCK */
+  .entity-block {
+    border-radius: 12px; border: 1px solid var(--border);
+    overflow: hidden; margin-bottom: 16px;
+    animation: fadeUp 0.4s ease both;
+  }
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(10px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .eb-consul  { border-color: rgba(109,40,217,0.2);  animation-delay: 0.05s; }
+  .eb-assoc   { border-color: rgba(3,105,161,0.2);   animation-delay: 0.10s; }
+  .eb-veiculo { border-color: rgba(4,120,87,0.2);    animation-delay: 0.15s; }
+  .eb-servico { border-color: rgba(234,88,12,0.2);   animation-delay: 0.20s; }
+  .eb-benef   { border-color: rgba(8,145,178,0.2);   animation-delay: 0.25s; }
+  .eb-benefit { border-color: rgba(190,24,93,0.2);   animation-delay: 0.30s; }
+  .eb-boleto  { border-color: rgba(180,83,9,0.2);    animation-delay: 0.35s; }
+
+  .entity-header {
+    display: flex; align-items: center; gap: 12px;
+    padding: 14px 22px; border-bottom: 1px solid var(--border);
+    background: #f8fafc;
+  }
+  .entity-icon { font-size: 18px; }
+  .entity-name { font-size: 15px; font-weight: 800; }
+  .eb-consul  .entity-name { color: var(--c-consul); }
+  .eb-assoc   .entity-name { color: var(--c-assoc); }
+  .eb-veiculo .entity-name { color: var(--c-veiculo); }
+  .eb-servico .entity-name { color: var(--c-servico); }
+  .eb-benef   .entity-name { color: var(--c-benef); }
+  .eb-benefit .entity-name { color: var(--c-benefit); }
+  .eb-boleto  .entity-name { color: var(--c-boleto); }
+
+  .entity-meta { margin-left: auto; display: flex; gap: 6px; align-items: center; flex-wrap: wrap; justify-content: flex-end; }
+  .meta-pill {
+    font-family: 'IBM Plex Mono', monospace; font-size: 10px;
+    padding: 3px 8px; border-radius: 4px;
+    background: #f1f5f9; color: var(--muted);
+    border: 1px solid var(--border);
+  }
+
+  /* SECTION LABEL */
+  .section-label {
+    padding: 5px 22px 4px; font-size: 9px; letter-spacing: 2px;
+    text-transform: uppercase; color: var(--subtle);
+    background: #f8fafc; border-bottom: 1px solid var(--border);
+    font-family: 'IBM Plex Mono', monospace;
+  }
+
+  /* TABLE */
+  .fields-table { width: 100%; border-collapse: collapse; }
+  .fields-table th {
+    font-family: 'IBM Plex Mono', monospace; font-size: 9px;
+    letter-spacing: 2px; text-transform: uppercase; color: var(--subtle);
+    padding: 8px 22px; text-align: left;
+    border-bottom: 1px solid var(--border);
+    background: #f8fafc;
+  }
+  .fields-table td {
+    padding: 8px 22px; font-size: 11px;
+    font-family: 'IBM Plex Mono', monospace;
+    border-bottom: 1px solid rgba(0,0,0,0.04);
+    vertical-align: middle; color: var(--muted);
+  }
+  .fields-table tr:last-child td { border-bottom: none; }
+  .fields-table tr:hover td { background: rgba(0,0,0,0.015); }
+  .field-name { color: var(--text) !important; font-weight: 500; }
+  .field-example { color: var(--subtle) !important; font-size: 10px; max-width: 240px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+  /* TAG PILLS */
+  .tag-pill {
+    font-size: 9px; padding: 2px 6px; border-radius: 3px;
+    font-family: 'IBM Plex Mono', monospace; display: inline-block; margin: 1px;
+  }
+  .tag-warn    { background: rgba(220,38,38,0.08);   color: var(--c-warn);    border: 1px solid rgba(220,38,38,0.2); }
+  .tag-ok      { background: rgba(22,163,74,0.08);   color: var(--c-ok);      border: 1px solid rgba(22,163,74,0.2); }
+  .tag-pending { background: rgba(202,138,4,0.08);   color: var(--c-pending); border: 1px solid rgba(202,138,4,0.2); }
+  .tag-multi   { background: rgba(3,105,161,0.08);   color: var(--c-multi);   border: 1px solid rgba(3,105,161,0.2); }
+  .tag-typo    { background: rgba(234,88,12,0.08);   color: var(--c-typo);    border: 1px solid rgba(234,88,12,0.2); }
+  .tag-arch    { background: rgba(109,40,217,0.08);  color: var(--c-arch);    border: 1px solid rgba(109,40,217,0.2); }
+  .tag-bank    { background: rgba(4,120,87,0.08);    color: #047857;          border: 1px solid rgba(4,120,87,0.2); }
+
+  /* ALERTS */
+  .alerts { padding: 12px 22px 14px; background: #fafafa; border-top: 1px solid var(--border); }
+  .alerts-title { font-size: 9px; letter-spacing: 2px; text-transform: uppercase; color: var(--subtle); font-family: 'IBM Plex Mono', monospace; margin-bottom: 8px; }
+  .alert-item { font-size: 11px; font-family: 'IBM Plex Mono', monospace; color: var(--muted); margin-bottom: 4px; padding-left: 14px; position: relative; }
+  .alert-item::before { content: '→'; position: absolute; left: 0; opacity: 0.5; }
+  .alert-warn  { color: var(--c-warn); }
+  .alert-info  { color: var(--c-assoc); }
+  .alert-ok    { color: var(--c-ok); }
+
+  /* CLASSIFICAÇÕES */
+  .class-grid { padding: 12px 22px 14px; background: #fafafa; border-top: 1px solid var(--border); }
+  .class-title { font-size: 9px; letter-spacing: 2px; text-transform: uppercase; color: var(--subtle); font-family: 'IBM Plex Mono', monospace; margin-bottom: 8px; }
+  .class-pills { display: flex; flex-wrap: wrap; gap: 6px; }
+  .class-pill { font-family: 'IBM Plex Mono', monospace; font-size: 10px; padding: 3px 10px; border-radius: 4px; background: #f1f5f9; border: 1px solid var(--border); color: var(--muted); }
+  .class-pill strong { color: var(--text); }
+
+  /* FOOTER */
+  .footer {
+    margin-top: 28px; padding-top: 16px; border-top: 1px solid var(--border);
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .footer-note { font-size: 11px; color: var(--muted); font-family: 'IBM Plex Mono', monospace; }
+  .footer-warn { font-size: 11px; color: var(--c-pending); font-family: 'IBM Plex Mono', monospace; }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <div class="header">
+    <div>
+      <div class="tag">// ETL · SGA Hinova → Núcleo Top Brasil</div>
+      <h1>Mapeamento de<br><span>Campos SGA</span></h1>
+    </div>
+    <div class="header-right">
+      <div class="date">Mar 2026 · api/sga/v2</div>
+      <div class="status-badge">● 7 entidades mapeadas</div>
+    </div>
+  </div>
+
+  <!-- NOMENCLATURA + HIERARQUIA -->
+  <div class="nomenclatura">
+    <div class="nom-card">
+      <div class="nom-title">// Nomenclatura SGA → Núcleo</div>
+      <table class="nom-table">
+        <tr><td>Voluntário</td><td>→</td><td>Consultor</td></tr>
+        <tr><td>Cooperativa</td><td>→</td><td>Equipe de Vendas</td></tr>
+        <tr><td>Regional</td><td>→</td><td>Regional (Tabela de Preço)</td></tr>
+        <tr><td>Produto</td><td>→</td><td>Serviço (add-on)</td></tr>
+        <tr><td>Benefício</td><td>→</td><td>Benefício (clube vantagens)</td></tr>
+      </table>
+    </div>
+    <div class="nom-card">
+      <div class="nom-title">// Notas gerais da API</div>
+      <table class="nom-table">
+        <tr><td>Datas</td><td>→</td><td>timezone -0300</td></tr>
+        <tr><td>codigo_* no listar</td><td>→</td><td>string (normalizar para int)</td></tr>
+        <tr><td>Paginação POST</td><td>→</td><td>pagina + quantidade_por_pagina</td></tr>
+        <tr><td>Token</td><td>→</td><td>expira · renovar via /autenticar</td></tr>
+        <tr><td>Volumes</td><td>→</td><td>62k assoc · 71k benef · 2.4k consult</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <!-- HIERARQUIA -->
+  <div class="estrutura">
+    <div class="estrutura-title">// Hierarquia de entidades — Cadastro</div>
+    <div class="estrutura-tree">
+      <span class="e-consul">Consultor</span><br>
+      &nbsp;&nbsp;└── <span class="e-assoc">Associado</span><br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;├── <span class="e-veiculo">Veículo</span> → <span class="e-servico">Serviço (produto adicional)</span><br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;├── <span class="e-benef">Beneficiário</span> → <span class="e-benefit">Benefício (clube de vantagens)</span><br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;└── <span class="e-boleto">Boleto</span> (por associado / mês)
+    </div>
+  </div>
+
+  <!-- STATUS -->
+  <div class="status-grid">
+    <div class="status-card sc-consul">
+      <div class="sc-name">Consultor</div>
+      <div class="sc-status">✓ Concluído</div>
+    </div>
+    <div class="status-card sc-assoc">
+      <div class="sc-name">Associado</div>
+      <div class="sc-status">✓ Concluído</div>
+    </div>
+    <div class="status-card sc-veiculo">
+      <div class="sc-name">Veículo</div>
+      <div class="sc-status">✓ Concluído</div>
+    </div>
+    <div class="status-card sc-servico">
+      <div class="sc-name">Serviço</div>
+      <div class="sc-status">✓ Concluído</div>
+    </div>
+    <div class="status-card sc-benef">
+      <div class="sc-name">Beneficiário</div>
+      <div class="sc-status">✓ / ⚠ parentesco via banco</div>
+    </div>
+    <div class="status-card sc-benefit">
+      <div class="sc-name">Benefício</div>
+      <div class="sc-status">✓ Concluído</div>
+    </div>
+    <div class="status-card sc-boleto">
+      <div class="sc-name">Boleto</div>
+      <div class="sc-status">✓ Concluído</div>
+    </div>
+  </div>
+
+  <!-- LEGEND -->
+  <div class="legend">
+    <div class="legend-item"><div class="legend-dot" style="background:var(--c-warn)"></div>⚠ Ponto de atenção</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--c-pending)"></div>⏳ Decisão/pendência</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--c-ok)"></div>✓ ID / mapeado</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--c-multi)"></div>↕ Array / múltiplos</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--c-typo)"></div>✎ Typo no campo original</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--c-arch)"></div>⬡ Decisão arquitetural</div>
+  </div>
+
+  <!-- ===== CONSULTOR ===== -->
+  <div class="entity-block eb-consul">
+    <div class="entity-header">
+      <span class="entity-icon">👤</span>
+      <span class="entity-name">Consultor</span>
+      <div class="entity-meta">
+        <span class="meta-pill">= Voluntário no SGA</span>
+        <span class="meta-pill">GET /listar/voluntario/ativo</span>
+        <span class="meta-pill">2.422 registros</span>
+      </div>
+    </div>
+    <table class="fields-table">
+      <thead><tr><th style="width:24%">Campo SGA</th><th style="width:10%">Tipo</th><th style="width:28%">Exemplo</th><th>Observação</th></tr></thead>
+      <tbody>
+        <tr><td class="field-name">codigo_voluntario</td><td>string</td><td class="field-example">"1"</td><td><span class="tag-pill tag-ok">PK</span> campo = "voluntario" no SGA</td></tr>
+        <tr><td class="field-name">nome</td><td>string</td><td class="field-example">"TOP BRASIL"</td><td>—</td></tr>
+        <tr><td class="field-name">cpf</td><td>string</td><td class="field-example">"21408664000164"</td><td><span class="tag-pill tag-warn">Critério de merge com Power CRM</span></td></tr>
+        <tr><td class="field-name">data_nascimento</td><td>datetime|null</td><td class="field-example">null</td><td>Nullable</td></tr>
+        <tr><td class="field-name">data_cadastro</td><td>datetime</td><td class="field-example">"2021-06-24T00:00:00-0300"</td><td>—</td></tr>
+        <tr><td class="field-name">email</td><td>string</td><td class="field-example">"giovani.laurentys@topprev.com.br"</td><td><span class="tag-pill tag-warn">Pode estar vazio</span></td></tr>
+        <tr><td class="field-name">telefone</td><td>string</td><td class="field-example">"(31)3395-3191"</td><td>Formato (DD)NNNN-NNNNN</td></tr>
+        <tr><td class="field-name">telefone_comercial</td><td>string</td><td class="field-example">"(31)"</td><td>Pode estar incompleto</td></tr>
+        <tr><td class="field-name">celular</td><td>string</td><td class="field-example">"()"</td><td>Pode estar vazio</td></tr>
+        <tr><td class="field-name">cep</td><td>string</td><td class="field-example">"32241-180"</td><td>—</td></tr>
+        <tr><td class="field-name">logradouro</td><td>string</td><td class="field-example">""</td><td>Pode estar vazio</td></tr>
+        <tr><td class="field-name">numero</td><td>string</td><td class="field-example">"49"</td><td>—</td></tr>
+        <tr><td class="field-name">complemento / bairro / cidade / estado</td><td>string</td><td class="field-example">""</td><td>Frequentemente vazios</td></tr>
+        <tr><td class="field-name">situacao</td><td>string</td><td class="field-example">"ATIVO"</td><td>ATIVO | INATIVO</td></tr>
+        <tr><td class="field-name">codigo_classificacao</td><td>string</td><td class="field-example">"1"</td><td>FK → classificacao_voluntario (1=Não Informado)</td></tr>
+        <tr><td class="field-name">formato_pagamento</td><td>string</td><td class="field-example">"R$"</td><td>R$ ou % — tipo de comissão</td></tr>
+        <tr><td class="field-name">valor_pagamento</td><td>decimal</td><td class="field-example">0</td><td>Valor ou % de comissão</td></tr>
+        <tr><td class="field-name">formato_pagamento_residual</td><td>string</td><td class="field-example">"R$"</td><td>—</td></tr>
+        <tr><td class="field-name">valor_pagamento_residual</td><td>decimal</td><td class="field-example">0</td><td>—</td></tr>
+        <tr><td class="field-name">obs</td><td>string</td><td class="field-example">""</td><td>—</td></tr>
+        <tr><td class="field-name">cooperativas</td><td>array</td><td class="field-example">[{codigo, nome, email}]</td><td><span class="tag-pill tag-multi">Array</span> <span class="tag-pill tag-arch">→ Equipe de Vendas no Núcleo · usar cooperativas[0]</span></td></tr>
+      </tbody>
+    </table>
+    <div class="alerts">
+      <div class="alerts-title">// Decisão arquitetural</div>
+      <div class="alert-item alert-ok">Consultor.equipe_vendas_id → FK direta (1:N) — sem junction table</div>
+      <div class="alert-item alert-ok">ETL: usar cooperativas[0] do array como Equipe de Vendas</div>
+      <div class="alert-item" style="color:var(--muted)">Consultor NÃO tem vínculo direto com Regional — aparece via Veículo → Tabela de Preço</div>
+    </div>
+  </div>
+
+  <!-- ===== ASSOCIADO ===== -->
+  <div class="entity-block eb-assoc">
+    <div class="entity-header">
+      <span class="entity-icon">👥</span>
+      <span class="entity-name">Associado</span>
+      <div class="entity-meta">
+        <span class="meta-pill">POST /listar/associado</span>
+        <span class="meta-pill">GET /associado/buscar/:codigo/codigo</span>
+        <span class="meta-pill">62.308 registros ativos</span>
+      </div>
+    </div>
+    <table class="fields-table">
+      <thead><tr><th style="width:24%">Campo SGA</th><th style="width:10%">Tipo</th><th style="width:28%">Exemplo</th><th>Observação</th></tr></thead>
+      <tbody>
+        <tr><td class="field-name">codigo_associado</td><td>integer</td><td class="field-example">129087</td><td><span class="tag-pill tag-ok">PK</span></td></tr>
+        <tr><td class="field-name">nome</td><td>string</td><td class="field-example">"070 AGROPECUÁRIA E COMÉRCIO LTDA"</td><td>—</td></tr>
+        <tr><td class="field-name">cpf</td><td>string</td><td class="field-example">"48991206000157"</td><td><span class="tag-pill tag-warn">CPF (PF) ou CNPJ (PJ) · auditar duplicatas</span></td></tr>
+        <tr><td class="field-name">tipo_pessoa</td><td>enum</td><td class="field-example">"JURÍDICA"</td><td>FÍSICA | JURÍDICA</td></tr>
+        <tr><td class="field-name">sexo</td><td>char(1)</td><td class="field-example">"M"</td><td>M | F</td></tr>
+        <tr><td class="field-name">data_nascimento</td><td>datetime</td><td class="field-example">"1972-08-15T00:00:00-0300"</td><td>timezone -0300</td></tr>
+        <tr><td class="field-name">nome_mae / nome_pai</td><td>string</td><td class="field-example">""</td><td>Apenas no endpoint buscar</td></tr>
+        <tr><td class="field-name">rg</td><td>string</td><td class="field-example">"3164923"</td><td>rg_associado no listar</td></tr>
+        <tr><td class="field-name">orgao_expedidor_rg</td><td>string</td><td class="field-example">"SPTC"</td><td>—</td></tr>
+        <tr><td class="field-name">data_expedicao_rg</td><td>datetime|null</td><td class="field-example">null</td><td>—</td></tr>
+        <tr><td class="field-name">cnh</td><td>string</td><td class="field-example">"01613420385"</td><td>—</td></tr>
+        <tr><td class="field-name">categoria_cnh</td><td>string</td><td class="field-example">"AB"</td><td>—</td></tr>
+        <tr><td class="field-name">data_vencimento_habilitacao</td><td>datetime</td><td class="field-example">"2029-04-16T00:00:00-0300"</td><td>—</td></tr>
+        <tr><td class="field-name">codigo_estado_civil</td><td>string</td><td class="field-example">"6"</td><td>FK → 1=Solteiro 2=Casado 5=Divorciado 6=N.Informado 7=União Estável</td></tr>
+        <tr><td class="field-name">codigo_profissao</td><td>string</td><td class="field-example">"1"</td><td>FK → profissao (82 registros)</td></tr>
+        <tr><td class="field-name">codigo_classificacao</td><td>string</td><td class="field-example">"1"</td><td>FK → 1=Não Informado 2=Não Enviar Lembrete</td></tr>
+        <tr><td class="field-name">dia_vencimento</td><td>char(2)</td><td class="field-example">"15"</td><td>Dias ativos: 5,7,10,15,20,25,26,30</td></tr>
+        <tr><td class="field-name">codigo_situacao</td><td>integer</td><td class="field-example">1</td><td>FK → situacao (endpoint bloqueado — inferir via descricao)</td></tr>
+        <tr><td class="field-name">descricao_situacao</td><td>string</td><td class="field-example">"ATIVO"</td><td>—</td></tr>
+        <tr><td class="field-name">codigo_regional</td><td>integer</td><td class="field-example">229</td><td>FK → Regional</td></tr>
+        <tr><td class="field-name">codigo_cooperativa</td><td>string</td><td class="field-example">"39"</td><td>FK → Equipe de Vendas</td></tr>
+        <tr><td class="field-name">codigo_voluntario</td><td>string|null</td><td class="field-example">null</td><td><span class="tag-pill tag-arch">FK → Consultor · modelo: associados.consultor_id + consultor_associado_log</span></td></tr>
+        <tr><td class="field-name">codigo_associado_beneficiario</td><td>string</td><td class="field-example">"212919"</td><td>FK → Beneficiário principal (o próprio)</td></tr>
+        <tr><td class="field-name">codigo_externo</td><td>string</td><td class="field-example">""</td><td>Código em sistema externo · nullable</td></tr>
+        <tr><td class="field-name">spcSerasa</td><td>enum</td><td class="field-example">"NÃO"</td><td>SIM | NÃO</td></tr>
+        <tr><td class="field-name">codigo_tipo_cobranca_recorrente</td><td>string</td><td class="field-example">"3"</td><td><span class="tag-pill tag-warn">Nem sempre é boleto</span> 1=BOLETO 3=CARTÃO</td></tr>
+        <tr><td class="field-name">ddd + telefone</td><td>string</td><td class="field-example">"" + ""</td><td><span class="tag-pill tag-warn">Splitado no listar · formatado no buscar</span></td></tr>
+        <tr><td class="field-name">telefone_fixo</td><td>string</td><td class="field-example">"(31)0000-0000"</td><td>Formato (DD)NNNN-NNNN — apenas no buscar</td></tr>
+        <tr><td class="field-name">ddd_celular + telefone_celular</td><td>string</td><td class="field-example">"62" + "9940-94791"</td><td>Splitado no listar</td></tr>
+        <tr><td class="field-name">ddd_celular_aux + telefone_celular_aux</td><td>string</td><td class="field-example">"" + ""</td><td>—</td></tr>
+        <tr><td class="field-name">ddd_comercial + telefone_comercial</td><td>string</td><td class="field-example">"" + ""</td><td>—</td></tr>
+        <tr><td class="field-name">email / email_auxiliar</td><td>string</td><td class="field-example">"agropecuaria070@gmail.com"</td><td>—</td></tr>
+        <tr><td class="field-name">cep</td><td>string</td><td class="field-example">"74470-400"</td><td>—</td></tr>
+        <tr><td class="field-name">logradouro / numero / complemento</td><td>string</td><td class="field-example">"RODOVIA GO-070" / "S/N"</td><td>—</td></tr>
+        <tr><td class="field-name">bairro / cidade / estado</td><td>string</td><td class="field-example">"CHÁCARA HELOU" / "GOIÂNIA" / "GO"</td><td>—</td></tr>
+        <tr><td class="field-name">data_cadastro</td><td>date</td><td class="field-example">"2025-12-21T00:00:00-0300"</td><td>data_cadastro_associado no listar</td></tr>
+        <tr><td class="field-name">data_contrato</td><td>datetime</td><td class="field-example">"2025-12-16T00:00:00-0300"</td><td>data_contrato_associado no listar</td></tr>
+        <tr><td class="field-name">hora_contrato</td><td>time</td><td class="field-example">"21:35:20"</td><td>Separado no listar · embutido no buscar</td></tr>
+        <tr><td class="field-name">pontos / filhos</td><td>decimal/int</td><td class="field-example">0 / 0</td><td>—</td></tr>
+        <tr><td class="field-name">radio / radio2</td><td>string</td><td class="field-example">""</td><td>Nº de rádio comunicador</td></tr>
+        <tr><td class="field-name">opcoes_notificacao</td><td>object</td><td class="field-example">{email:"Y", sms:"Y", whatsapp:"Y"}</td><td><span class="tag-pill tag-multi">Sub-objeto</span></td></tr>
+        <tr><td class="field-name">veiculos</td><td>array</td><td class="field-example">[{codigo, placa, chassi, ...}]</td><td><span class="tag-pill tag-multi">Array embutido</span> ver entidade Veículo</td></tr>
+        <tr><td class="field-name">campos_opcionais</td><td>array</td><td class="field-example">["sem campo opcional cadastrado"]</td><td>Campos customizados do cliente</td></tr>
+      </tbody>
+    </table>
+    <div class="alerts">
+      <div class="alerts-title">// Alertas ETL</div>
+      <div class="alert-item alert-warn">Telefones splitados no listar (ddd + número) e formatados no buscar — normalizar para um padrão</div>
+      <div class="alert-item alert-warn">codigo_associado_beneficiario: relação circular — associado pode ser beneficiário de outro associado</div>
+      <div class="alert-item alert-warn">Typo no SGA: tabela profissao grava "INAIVO" em vez de "INATIVO"</div>
+      <div class="alert-item alert-warn">Endpoint listar/situacao bloqueado para este token — inferir: 1=ATIVO</div>
+    </div>
+  </div>
+
+  <!-- ===== VEÍCULO ===== -->
+  <div class="entity-block eb-veiculo">
+    <div class="entity-header">
+      <span class="entity-icon">🚗</span>
+      <span class="entity-name">Veículo</span>
+      <div class="entity-meta">
+        <span class="meta-pill">GET /veiculo/buscar/:placa/placa</span>
+        <span class="meta-pill">embutido no Associado buscar</span>
+      </div>
+    </div>
+    <table class="fields-table">
+      <thead><tr><th style="width:24%">Campo SGA</th><th style="width:10%">Tipo</th><th style="width:28%">Exemplo</th><th>Observação</th></tr></thead>
+      <tbody>
+        <tr><td colspan="4" class="section-label">// Identificação</td></tr>
+        <tr><td class="field-name">codigo_veiculo</td><td>string</td><td class="field-example">"160283"</td><td><span class="tag-pill tag-ok">PK</span></td></tr>
+        <tr><td class="field-name">placa</td><td>string</td><td class="field-example">"PQD7B10"</td><td>Mercosul ou antigo</td></tr>
+        <tr><td class="field-name">chassi</td><td>string</td><td class="field-example">"9BG148TA0HC451966"</td><td>—</td></tr>
+        <tr><td class="field-name">renavam</td><td>string</td><td class="field-example">"01120473702"</td><td>—</td></tr>
+        <tr><td class="field-name">numero_motor</td><td>string</td><td class="field-example">"163570792"</td><td>—</td></tr>
+
+        <tr><td colspan="4" class="section-label">// Tipo / Modelo</td></tr>
+        <tr><td class="field-name">codigo_tipo_veiculo</td><td>string</td><td class="field-example">"2"</td><td>FK → 1=Veículos Leves 2=Picape 3=Motocicleta 4=Truck 16=Premium</td></tr>
+        <tr><td class="field-name">tipo</td><td>string</td><td class="field-example">"PICAPE"</td><td>Denormalizado</td></tr>
+        <tr><td class="field-name">codigo_marca / marca</td><td>string</td><td class="field-example">"72" / "GM - CHEVROLET"</td><td>Denormalizado</td></tr>
+        <tr><td class="field-name">codigo_modelo / modelo</td><td>string</td><td class="field-example">"4373" / "S10 PICK-UP ADVANTAGE..."</td><td>Denormalizado</td></tr>
+        <tr><td class="field-name">ano_fabricacao / ano_modelo</td><td>int</td><td class="field-example">2017 / 2017</td><td>—</td></tr>
+        <tr><td class="field-name">codigo_combustivel</td><td>string</td><td class="field-example">"1"</td><td>FK → 1=Flex 2=Gasolina 3=Etanol 4=Diesel 10=Elétrico 12=Híbrido</td></tr>
+        <tr><td class="field-name">codigo_cor</td><td>string</td><td class="field-example">"2"</td><td>FK → 1=Preto 2=Branca 6=Cinza 9=Prata 10=N.Especificado</td></tr>
+        <tr><td class="field-name">cambio</td><td>char(1)</td><td class="field-example">"A"</td><td>A=Automático / M=Manual</td></tr>
+        <tr><td class="field-name">cilindrada</td><td>int</td><td class="field-example">0</td><td>Para motos</td></tr>
+        <tr><td class="field-name">quantidade_portas / quantidade_passageiros / km</td><td>int</td><td class="field-example">0 / 0 / 0</td><td>0 quando não informado</td></tr>
+
+        <tr><td colspan="4" class="section-label">// FIPE / Valor</td></tr>
+        <tr><td class="field-name">codigo_fipe</td><td>string</td><td class="field-example">"004474-1"</td><td>—</td></tr>
+        <tr><td class="field-name">valor_fipe</td><td>decimal</td><td class="field-example">102820</td><td>Valor FIPE atual</td></tr>
+        <tr><td class="field-name">valor_fipe_protegido</td><td>string</td><td class="field-example">"102820.00"</td><td>String → converter para decimal</td></tr>
+        <tr><td class="field-name">porcentagem_fipe_protegido</td><td>decimal</td><td class="field-example">0</td><td>—</td></tr>
+        <tr><td class="field-name">valor_fixo</td><td>decimal</td><td class="field-example">369.32</td><td>Mensalidade fixa</td></tr>
+        <tr><td class="field-name">valor_adesao / participacao</td><td>decimal</td><td class="field-example">0 / 0</td><td>Participação = franquia em sinistro</td></tr>
+
+        <tr><td colspan="4" class="section-label">// Cota / Plano</td></tr>
+        <tr><td class="field-name">codigo_cota / cota</td><td>string</td><td class="field-example">"3000" / "PICAPES CENTRO OESTE - R$100k..."</td><td>Faixa de valor FIPE</td></tr>
+        <tr><td class="field-name">codigo_categoria / categoria</td><td>string</td><td class="field-example">"4" / "NORMAL"</td><td>Denormalizado</td></tr>
+        <tr><td class="field-name">codigo_grupo_produto</td><td>string</td><td class="field-example">"6"</td><td><span class="tag-pill tag-warn">= Plano de proteção (Black/Gold/Platinum) — diferente de Produto/Serviço</span></td></tr>
+        <tr><td class="field-name">codigo_depreciacao</td><td>string</td><td class="field-example">"1"</td><td>FK → tabela de depreciação</td></tr>
+
+        <tr><td colspan="4" class="section-label">// Cobrança</td></tr>
+        <tr><td class="field-name">codigo_vencimeto</td><td>string</td><td class="field-example">"4"</td><td><span class="tag-pill tag-typo">Typo: "vencimeto"</span> FK → vencimento</td></tr>
+        <tr><td class="field-name">dia_vencimento</td><td>string</td><td class="field-example">"15"</td><td>—</td></tr>
+        <tr><td class="field-name">mes_referente</td><td>string</td><td class="field-example">"02/2026"</td><td>MM/YYYY — converter para YYYY-MM</td></tr>
+        <tr><td class="field-name">codigo_tipo_envio_boleto</td><td>string</td><td class="field-example">"3"</td><td>3=ENVIO POR E-MAIL E WHATSAPP</td></tr>
+        <tr><td class="field-name">boleto_fisico</td><td>char(1)</td><td class="field-example">"N"</td><td>S / N</td></tr>
+        <tr><td class="field-name">forma_pagamento_protecao</td><td>int</td><td class="field-example">1</td><td>—</td></tr>
+
+        <tr><td colspan="4" class="section-label">// Situação / Registro</td></tr>
+        <tr><td class="field-name">codigo_situacao / descricao_situacao</td><td>string</td><td class="field-example">"1" / "ATIVO"</td><td>—</td></tr>
+        <tr><td class="field-name">data_cadastro / hora_cadastro</td><td>datetime/time</td><td class="field-example">"2025-12-21T..." / "21:35:22"</td><td>—</td></tr>
+        <tr><td class="field-name">data_contrato / data_reativacao</td><td>datetime|null</td><td class="field-example">"2025-12-16T..." / null</td><td>—</td></tr>
+        <tr><td class="field-name">usuario_cadastro</td><td>string</td><td class="field-example">"CRM 2 CENTRO OESTE"</td><td>Auditoria de criação</td></tr>
+
+        <tr><td colspan="4" class="section-label">// Vínculos</td></tr>
+        <tr><td class="field-name">codigo_regional / codigo_cooperativa</td><td>string</td><td class="field-example">"229" / "39"</td><td>FK → Regional / Equipe de Vendas</td></tr>
+        <tr><td class="field-name">codigo_associado</td><td>string</td><td class="field-example">"129087"</td><td>FK → Associado</td></tr>
+        <tr><td class="field-name">codigo_voluntario / nome_voluntario / cpf_voluntario</td><td>string</td><td class="field-example">"148" / "RODRIGO MELO SILVA"</td><td><span class="tag-pill tag-warn">Consultor pode ser diferente do consultor do associado</span></td></tr>
+        <tr><td class="field-name">codigo_veiculo_vinculado / indicador</td><td>string|null</td><td class="field-example">null</td><td>FKs de vínculo e indicação</td></tr>
+        <tr><td class="field-name">campos_opcionais</td><td>array</td><td class="field-example">["sem campo opcional cadastrado"]</td><td>—</td></tr>
+        <tr><td class="field-name"><em>(dados do associado)</em></td><td>—</td><td class="field-example">—</td><td>Nome, CPF, RG, telefones, email, endereço — desnormalizados — ignorar na carga</td></tr>
+      </tbody>
+    </table>
+    <div class="alerts">
+      <div class="alerts-title">// Alertas ETL</div>
+      <div class="alert-item alert-warn">Typo: campo "codigo_vencimeto" (falta o n) — mapear com nome errado</div>
+      <div class="alert-item alert-warn">Busca por codigo_veiculo direto retorna 404 — usar placa como chave de busca individual</div>
+      <div class="alert-item alert-warn">Listagem por associado bloqueada → extração via associado/buscar (veículos embutidos) ou busca por placa</div>
+    </div>
+  </div>
+
+  <!-- ===== SERVIÇO ===== -->
+  <div class="entity-block eb-servico">
+    <div class="entity-header">
+      <span class="entity-icon">⚙️</span>
+      <span class="entity-name">Serviço</span>
+      <div class="entity-meta">
+        <span class="meta-pill">= Produto no SGA</span>
+        <span class="meta-pill">GET /produto/buscar/:codigo</span>
+        <span class="meta-pill">GET /listar/classificacao-produto/todos</span>
+      </div>
+    </div>
+    <table class="fields-table">
+      <thead><tr><th style="width:24%">Campo SGA</th><th style="width:10%">Tipo</th><th style="width:28%">Exemplo</th><th>Observação</th></tr></thead>
+      <tbody>
+        <tr><td class="field-name">codigo_produto</td><td>string</td><td class="field-example">"6"</td><td><span class="tag-pill tag-ok">PK</span></td></tr>
+        <tr><td class="field-name">descricao</td><td>string</td><td class="field-example">"CARRO RESERVA (30 DIAS)"</td><td>Nome do serviço</td></tr>
+        <tr><td class="field-name">descricao_boleto</td><td>string</td><td class="field-example">"CARRO RESERVA (30 DIAS)"</td><td>Texto que aparece no boleto</td></tr>
+        <tr><td class="field-name">codigo_classificacaoproduto</td><td>string</td><td class="field-example">"22"</td><td>FK → classificacao_produto (ver tabela abaixo)</td></tr>
+        <tr><td class="field-name">codigo_fornecedor / nome_fornecedor</td><td>string</td><td class="field-example">"1" / "TOP PREV"</td><td>Denormalizado</td></tr>
+        <tr><td class="field-name">situacao</td><td>string</td><td class="field-example">"INATIVO"</td><td>ATIVO | INATIVO</td></tr>
+      </tbody>
+    </table>
+    <div class="class-grid">
+      <div class="class-title">// Classificações de Produto (ativas)</div>
+      <div class="class-pills">
+        <span class="class-pill"><strong>4</strong> PRODUTO ADICIONAL VEICULO</span>
+        <span class="class-pill"><strong>10</strong> PRODUTO ADICIONAL ASSOCIADO</span>
+        <span class="class-pill"><strong>21</strong> ASSISTÊNCIA 24HRS</span>
+        <span class="class-pill"><strong>22</strong> CARRO RESERVA</span>
+        <span class="class-pill"><strong>23</strong> VIDROS</span>
+        <span class="class-pill"><strong>24</strong> RASTREADOR</span>
+        <span class="class-pill"><strong>25</strong> PROTEÇÃO TERCEIROS</span>
+        <span class="class-pill"><strong>41</strong> EVENTOS</span>
+      </div>
+    </div>
+    <div class="alerts">
+      <div class="alerts-title">// Alertas ETL</div>
+      <div class="alert-item alert-warn">grupo_produto do veículo = plano de proteção (Black/Gold/Platinum) — entidade diferente de Produto/Serviço</div>
+      <div class="alert-item alert-info">Produto class 4 vinculado a Veículo · class 10 vinculado a Associado diretamente</div>
+      <div class="alert-item alert-info">Vínculo Produto ↔ Veículo/Associado provavelmente via Boleto (cada add-on gera linha no boleto)</div>
+    </div>
+  </div>
+
+  <!-- ===== BENEFICIÁRIO ===== -->
+  <div class="entity-block eb-benef">
+    <div class="entity-header">
+      <span class="entity-icon">🧑‍🤝‍🧑</span>
+      <span class="entity-name">Beneficiário</span>
+      <div class="entity-meta">
+        <span class="meta-pill">POST /listar/beneficiario</span>
+        <span class="meta-pill">GET /beneficiario/buscar/:codigo</span>
+        <span class="meta-pill">71.542 registros ativos</span>
+      </div>
+    </div>
+    <table class="fields-table">
+      <thead><tr><th style="width:24%">Campo SGA</th><th style="width:10%">Tipo</th><th style="width:28%">Exemplo</th><th>Observação</th></tr></thead>
+      <tbody>
+        <tr><td class="field-name">codigo_beneficiario</td><td>string</td><td class="field-example">"212919"</td><td><span class="tag-pill tag-ok">PK</span> Código próprio, diferente do codigo_associado</td></tr>
+        <tr><td class="field-name">codigo_associado</td><td>string</td><td class="field-example">"129087"</td><td>FK → Associado (de quem é beneficiário)</td></tr>
+        <tr><td class="field-name">nome</td><td>string</td><td class="field-example">"070 AGROPECUÁRIA E COMÉRCIO LTDA"</td><td>—</td></tr>
+        <tr><td class="field-name">cpf</td><td>string</td><td class="field-example">"48991206000157"</td><td><span class="tag-pill tag-warn">Pode ser igual ao CPF do associado (parentesco "O Próprio")</span></td></tr>
+        <tr><td class="field-name">cpf_associado</td><td>string</td><td class="field-example">"48991206000157"</td><td>Denormalizado</td></tr>
+        <tr><td class="field-name">sexo</td><td>char(1)</td><td class="field-example">"M"</td><td>M / F</td></tr>
+        <tr><td class="field-name">data_nascimento_beneficiario</td><td>date</td><td class="field-example">"1972-08-15"</td><td>Formato YYYY-MM-DD</td></tr>
+        <tr><td class="field-name">rg_beneficiario / orgao_expedidor_rg</td><td>string</td><td class="field-example">"3164923" / "SPTC"</td><td>—</td></tr>
+        <tr><td class="field-name">data_expedicao_rg_beneficiario</td><td>date</td><td class="field-example">"0000-00-00"</td><td><span class="tag-pill tag-warn">String "0000-00-00" quando não informado — tratar como null</span></td></tr>
+        <tr><td class="field-name">cnh / categoria_cnh</td><td>string</td><td class="field-example">"01613420385" / "AB"</td><td>—</td></tr>
+        <tr><td class="field-name">nome_mae / nome_pai</td><td>string</td><td class="field-example">"" / ""</td><td>—</td></tr>
+        <tr><td class="field-name">logradouro / numero / complemento</td><td>string</td><td class="field-example">"RODOVIA GO-070" / "S/N"</td><td>—</td></tr>
+        <tr><td class="field-name">bairro / cidade / estado / cep</td><td>string</td><td class="field-example">"CHÁCARA HELOU" / "GOIÂNIA" / "GO"</td><td>—</td></tr>
+        <tr><td class="field-name">ddd</td><td><strong>integer</strong></td><td class="field-example">0</td><td><span class="tag-pill tag-warn">Integer no Beneficiário · string no Associado — normalizar</span></td></tr>
+        <tr><td class="field-name">telefone / ddd_celular / telefone_celular</td><td>string/int</td><td class="field-example">"" / 62 / "9940-94791"</td><td>—</td></tr>
+        <tr><td class="field-name">email / email_auxiliar</td><td>string</td><td class="field-example">"agropecuaria070@gmail.com"</td><td>—</td></tr>
+        <tr><td class="field-name">valor_fixo / valor_adesao / participacao</td><td>decimal</td><td class="field-example">0 / 0 / 0</td><td>—</td></tr>
+        <tr><td class="field-name">pontos</td><td>decimal</td><td class="field-example">0</td><td>—</td></tr>
+        <tr><td class="field-name">codigo_voluntario</td><td>string|null</td><td class="field-example">null</td><td>FK → Consultor (nullable)</td></tr>
+        <tr><td class="field-name">radio / radio2</td><td>string</td><td class="field-example">""</td><td>Uso não identificado</td></tr>
+        <tr><td class="field-name">data_cadastro_beneficiario / data_contrato_beneficiario</td><td>date</td><td class="field-example">"2025-12-21" / "2025-12-21"</td><td>—</td></tr>
+        <tr><td class="field-name">hora_contrato_beneficiario</td><td>time</td><td class="field-example">"21:35:20"</td><td>—</td></tr>
+        <tr><td class="field-name">codigo_situacao / descricao_situacao</td><td>string</td><td class="field-example">"1" / "ATIVO"</td><td>1=ATIVO 4=INADIMPLENTE</td></tr>
+        <tr><td class="field-name">campos_opcionais</td><td>array</td><td class="field-example">["sem campo opcional cadastrado"]</td><td>—</td></tr>
+        <tr><td class="field-name"><em>codigo_parentesco</em></td><td>—</td><td class="field-example">—</td><td><span class="tag-pill tag-warn">NÃO retorna na API</span> Tabela existe: 1=Mãe 2=Pai 3=Filho 4=Avô 5=Cônjuge 6=Nenhum 7=O Próprio</td></tr>
+      </tbody>
+    </table>
+    <div class="alerts">
+      <div class="alerts-title">// Alertas ETL</div>
+      <div class="alert-item alert-warn">codigo_parentesco não retorna em nenhum endpoint — requer acesso direto ao banco da Hinova</div>
+      <div class="alert-item alert-warn">listar/beneficiario ignora o filtro codigo_associado — retorna todos os 71k paginados (full-scan)</div>
+      <div class="alert-item alert-warn">ddd vem como integer · string no Associado — normalizar para varchar</div>
+    </div>
+  </div>
+
+  <!-- ===== BENEFÍCIO ===== -->
+  <div class="entity-block eb-benefit">
+    <div class="entity-header">
+      <span class="entity-icon">🎁</span>
+      <span class="entity-name">Benefício</span>
+      <div class="entity-meta">
+        <span class="meta-pill">GET /listar/beneficio-beneficiario/:codigo_beneficiario</span>
+        <span class="meta-pill">clube de vantagens · independente de Produto</span>
+      </div>
+    </div>
+    <table class="fields-table">
+      <thead><tr><th style="width:24%">Campo SGA</th><th style="width:10%">Tipo</th><th style="width:28%">Exemplo</th><th>Observação</th></tr></thead>
+      <tbody>
+        <tr><td colspan="4" class="section-label">// Envelope do endpoint (dados do Beneficiário)</td></tr>
+        <tr><td class="field-name">codigo_beneficiario</td><td>string</td><td class="field-example">"103287"</td><td>FK → Beneficiário</td></tr>
+        <tr><td class="field-name">nome / cpf / sexo</td><td>string</td><td class="field-example">"RAMON FIGUEIREDO..." / "097..."</td><td>Denormalizados</td></tr>
+        <tr><td class="field-name">telefone / celular</td><td>string</td><td class="field-example">"(0)" / "(31)99164-0603"</td><td>—</td></tr>
+        <tr><td class="field-name">logradouro / numero / bairro / cidade / estado</td><td>string</td><td class="field-example">"RUA ADELINA MARIA..." / "86"</td><td>—</td></tr>
+        <tr><td class="field-name">data_contrato</td><td>datetime</td><td class="field-example">"2022-04-27T00:00:00-0300"</td><td>—</td></tr>
+        <tr><td class="field-name">situacao / situacao_associado</td><td>string</td><td class="field-example">"ATIVO" / "ATIVO"</td><td>Status do beneficiário e do associado pai</td></tr>
+
+        <tr><td colspan="4" class="section-label">// Array beneficios[]</td></tr>
+        <tr><td class="field-name">codigo_beneficio</td><td>string</td><td class="field-example">"2"</td><td><span class="tag-pill tag-ok">PK</span></td></tr>
+        <tr><td class="field-name">descricao</td><td>string</td><td class="field-example">"BENEFICIO HINOVA MAIS"</td><td>Nome do benefício</td></tr>
+        <tr><td class="field-name">situacao</td><td>string</td><td class="field-example">"ATIVO"</td><td>ATIVO | INATIVO — status do vínculo</td></tr>
+      </tbody>
+    </table>
+    <div class="class-grid">
+      <div class="class-title">// Benefícios encontrados (associado de teste)</div>
+      <div class="class-pills">
+        <span class="class-pill"><strong>2</strong> BENEFICIO HINOVA MAIS <em style="color:var(--c-ok)">ativo</em></span>
+        <span class="class-pill"><strong>5</strong> ODONTO FAMILIAR <em style="color:var(--muted)">inativo</em></span>
+        <span class="class-pill"><strong>7</strong> DESCONTO PAGUE MENOS <em style="color:var(--muted)">inativo</em></span>
+        <span class="class-pill"><strong>8</strong> LECUPON <em style="color:var(--c-ok)">ativo</em></span>
+        <span class="class-pill"><strong>15</strong> TOP VIDA INDIVIDUAL <em style="color:var(--c-ok)">ativo</em></span>
+      </div>
+    </div>
+    <div class="alerts">
+      <div class="alerts-title">// Alertas ETL</div>
+      <div class="alert-item alert-info">Benefício é independente de Produto — entidades distintas no SGA</div>
+      <div class="alert-item alert-warn">Não há endpoint de catálogo completo de benefícios (/listar/beneficio/* retorna 404)</div>
+      <div class="alert-item alert-info">ETL: percorrer todos os Beneficiários e chamar GET /listar/beneficio-beneficiario/:codigo para cada um</div>
+    </div>
+  </div>
+
+  <!-- ===== BOLETO ===== -->
+  <div class="entity-block eb-boleto">
+    <div class="entity-header">
+      <span class="entity-icon">💰</span>
+      <span class="entity-name">Boleto</span>
+      <div class="entity-meta">
+        <span class="meta-pill">POST /listar/boleto</span>
+        <span class="meta-pill">body: {codigo_associado: "..."}</span>
+      </div>
+    </div>
+    <table class="fields-table">
+      <thead><tr><th style="width:24%">Campo SGA</th><th style="width:10%">Tipo</th><th style="width:28%">Exemplo</th><th>Observação</th></tr></thead>
+      <tbody>
+        <tr><td colspan="4" class="section-label">// Identificação</td></tr>
+        <tr><td class="field-name">codigo_boleto</td><td>string</td><td class="field-example">"1962677"</td><td><span class="tag-pill tag-ok">PK</span></td></tr>
+        <tr><td class="field-name">nosso_numero</td><td>int</td><td class="field-example">3338881</td><td>Número do banco — necessário para conciliação</td></tr>
+        <tr><td class="field-name">codigo_associado</td><td>string</td><td class="field-example">"129087"</td><td>FK → Associado</td></tr>
+
+        <tr><td colspan="4" class="section-label">// Situação / Referência</td></tr>
+        <tr><td class="field-name">codigo_situacao_boleto</td><td>string</td><td class="field-example">"1"</td><td><span class="tag-pill tag-warn">1=BAIXADO · 2=ABERTO · 999=EXCLUIDO (fora do padrão)</span></td></tr>
+        <tr><td class="field-name">descricao_situacao_boleto</td><td>string</td><td class="field-example">"BAIXADO"</td><td>Denormalizado</td></tr>
+        <tr><td class="field-name">pago</td><td>char(1)</td><td class="field-example">"Y"</td><td>Y / N</td></tr>
+        <tr><td class="field-name">mes_referente</td><td>string</td><td class="field-example">"01/2026"</td><td>MM/YYYY — converter para YYYY-MM</td></tr>
+        <tr><td class="field-name">referente</td><td>string</td><td class="field-example">"Referente a: Mensalidade 01/2026"</td><td>Texto descritivo</td></tr>
+
+        <tr><td colspan="4" class="section-label">// Datas / Valores</td></tr>
+        <tr><td class="field-name">data_emissao</td><td>date</td><td class="field-example">"2026-01-24"</td><td>—</td></tr>
+        <tr><td class="field-name">data_vencimento_original / data_vencimento</td><td>date</td><td class="field-example">"2026-02-18" / "2026-02-18"</td><td>Vencimento efetivo pode ser prorrogado</td></tr>
+        <tr><td class="field-name">valor_boleto</td><td><strong>string</strong></td><td class="field-example">"369.32"</td><td><span class="tag-pill tag-warn">Vem como string — converter para decimal</span></td></tr>
+        <tr><td class="field-name">data_pagamento / valor_pagamento</td><td>date/decimal</td><td class="field-example">"2026-02-18" / 369.32</td><td>Nullable</td></tr>
+        <tr><td class="field-name">data_credito_banco</td><td>date|null</td><td class="field-example">"2026-02-18"</td><td>—</td></tr>
+        <tr><td class="field-name">tarifa_cobranca_banco</td><td>decimal|null</td><td class="field-example">0</td><td>—</td></tr>
+        <tr><td class="field-name">parcela_paga / qtde_parcela</td><td>int</td><td class="field-example">0 / 0</td><td>—</td></tr>
+
+        <tr><td colspan="4" class="section-label">// Tipo / Forma de Pagamento</td></tr>
+        <tr><td class="field-name">codigo_tipo_boleto / descricao_tipo_boleto</td><td>string</td><td class="field-example">"5" / "FECHAMENTO"</td><td>—</td></tr>
+        <tr><td class="field-name">descricao_tipo_cobranca_recorrente</td><td>string</td><td class="field-example">"BOLETO / CARNÊ"</td><td>codigo_* não retorna</td></tr>
+        <tr><td class="field-name">codigo_mgfformapagamento / codigo_forma_pagamento</td><td>string</td><td class="field-example">"1" / "2"</td><td>FK — nullable</td></tr>
+        <tr><td class="field-name">descricao_forma_pagamento</td><td>string|null</td><td class="field-example">"BOLETO"</td><td>—</td></tr>
+        <tr><td class="field-name">descricao_tipo_baixa_boleto</td><td>string|null</td><td class="field-example">"BAIXA AUTOMATICA DE TITULO"</td><td>—</td></tr>
+
+        <tr><td colspan="4" class="section-label">// Banco</td></tr>
+        <tr><td class="field-name">codigo_conta</td><td>string</td><td class="field-example">"32"</td><td>FK → conta bancária</td></tr>
+        <tr><td class="field-name">codigo_banco / nome_banco</td><td>string</td><td class="field-example">"756" / "BANCO COOPERATIVO DO BRASIL..."</td><td><span class="tag-pill tag-bank">756=BANCOOB · 2000=HINOVA PAY</span></td></tr>
+        <tr><td class="field-name">agencia / conta</td><td>string</td><td class="field-example">"3089" / "53287"</td><td>—</td></tr>
+        <tr><td class="field-name">codigo_regional / nome_regional_boleto</td><td>string</td><td class="field-example">"229" / "ASSOC. AUXILIO MUTUO..."</td><td>Denormalizado</td></tr>
+
+        <tr><td colspan="4" class="section-label">// Coberturas</td></tr>
+        <tr><td class="field-name">veiculo</td><td>array</td><td class="field-example">["160283"]</td><td><span class="tag-pill tag-multi">Array</span> Boleto pode cobrir múltiplos veículos</td></tr>
+        <tr><td class="field-name">beneficiario</td><td>array</td><td class="field-example">[""]</td><td><span class="tag-pill tag-multi">Array</span> Lista de codigo_beneficiario cobertos</td></tr>
+        <tr><td class="field-name"><em>(dados do associado)</em></td><td>—</td><td class="field-example">—</td><td>Nome, CPF, situação, regional — desnormalizados — ignorar</td></tr>
+      </tbody>
+    </table>
+    <div class="alerts">
+      <div class="alerts-title">// Alertas ETL</div>
+      <div class="alert-item alert-warn">valor_boleto vem como string decimal — converter para numeric</div>
+      <div class="alert-item alert-warn">veiculo e beneficiario são arrays — relação N:N boleto ↔ veículo / beneficiário</div>
+      <div class="alert-item alert-warn">Situação 999=EXCLUIDO fora do padrão numérico sequencial</div>
+      <div class="alert-item alert-info">Linha digitável / código de barras não retorna neste endpoint — verificar endpoint específico de emissão</div>
+    </div>
+  </div>
+
+  <div class="footer">
+    <div class="footer-note">v3.0 · Mapeamento SGA → Núcleo · 7 entidades · Mar 2026</div>
+    <div class="footer-warn">⚠ Pendência: codigo_parentesco do Beneficiário requer acesso direto ao banco da Hinova</div>
+  </div>
+
+</div>
+</body>
+</html>
